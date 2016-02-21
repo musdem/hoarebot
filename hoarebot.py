@@ -2,7 +2,10 @@ import random
 import socket
 import time
 import sys
+import os
 import json
+
+#possibly make an initialization method in all modules that returns the possible commands and what they do
 
 class HoareBot:
     def __init__(self,channel):
@@ -10,14 +13,6 @@ class HoareBot:
         passwordFile = open('/home/pi/hoarebot/oauthIRC.json')
         self.password = json.load(passwordFile)[0]
         passwordFile.close()
-        #reading in the current copy pasta list
-        pastaFile = open('/home/pi/hoarebot/pasta.json')
-        self.pastalist = json.load(pastaFile)
-        pastaFile.close()
-        #reading in the current copy pasta list
-        healthyFile = open('/home/pi/hoarebot/healthy.json')
-        self.healthylist = json.load(healthyFile)
-        healthyFile.close()
         #initializing all of the global variables and twitch information
         self.server = 'irc.twitch.tv'
         self.port = 6667
@@ -26,13 +21,12 @@ class HoareBot:
         self.maxRepeat = 20
         self.willForce3 = 0
         self.count = 0
-        self.drawActive = False
-        self.drawlist = []
         self.modslist = []
-        #setting the list of commands and emotes for slots
-        self.emotes = ['Kappa','KappaPride','EleGiggle','BibleThump','PogChamp','TriHard','CoolCat','WutFace','Kreygasm']
-        self.commands = ['!commands','!slots','!pasta','!modspls','!raffle','!social','!healthy']
-        self.secretcommands = ['!modcommands','!refreshmods','!ban','!updatepasta','!toggleraffle','!raffledraw','!updatehealthy','!removepasta','!removehealthy']
+        self.moduleCount = 0
+        self.installedModules = []
+        self.commands = ['!commands','!modspls','!social']
+        self.secretcommands = ['!modcommands','!refreshmods','!ban']
+        self.modulecommands = []#use json to load previously installed modules
         #creating the socket and connecting to twitch irc server
         self.irc = socket.socket()
         self.irc.connect((self.server, self.port))
@@ -72,112 +66,63 @@ class HoareBot:
                 self.chat('Mod set failed')
         self.modslist[len(self.modslist) - 1] = self.modslist[len(self.modslist) - 1].strip('\r\n')
 
-    def slots(self,username):
-        if(self.willForce3 > random.randint(10,20)):
-            emote = random.choice(self.emotes)
-            outcome =  '{} | {} | {}'.format(emote,emote,emote)
-            self.willForce3 = 0
-        else:
-            outcome =  '{} | {} | {}'.format(random.choice(self.emotes),random.choice(self.emotes),random.choice(self.emotes))
-            self.willForce3 += 1
-        self.chat(outcome)
-        if(outcome == 'Kappa | Kappa | Kappa'):
-            self.chat('Goodbye {} Kappa'.format(username))
-            self.timeout(username,1)
-        elif(outcome == 'TriHard | TriHard | TriHard'):
-            uNameHype = 'TriHard '
-            for i in range(0,len(username)):
-                uNameHype += username.upper()[i] + ' TriHard '
-            uNameHype += 'H TriHard Y TriHard P TriHard E TriHard'
-            self.chat(uNameHype)
-        elif(outcome == 'Kreygasm | Kreygasm | Kreygasm'):
-            self.chat('Kreygasm For later tonight {} https://www.youtube.com/watch?v=P-Vvm7M4Lig Kreygasm'.format(username))
+    def refreshModules(self):
+        self.installedModules = os.listdir('./modules')
+        for(i in range(0,len(self.installedModules))):
+            self.installedModules = self.installedModules[i].replace('.py','')
 
-    def updateList(self,item,listType,mode):
-        if(mode == 'w'):
-            if(listType == 'pasta'):
-                if(not(item in self.pastalist)):
-                    self.pastalist.append(item)
-                    pastaFile = open('/home/pi/hoarebot/pasta.json','w')
-                    json.dump(self.pastalist,pastaFile)
-                    pastaFile.close()
-                    self.chat("{} added to pasta".format(item))
-                else:
-                    self.chat('That is already in the list FailFish')
-            elif(listType == 'healthy'):
-                if(not(item in self.healthylist)):
-                    self.healthylist.append(item)
-                    healthyFile = open('/home/pi/hoarebot/healthy.json','w')
-                    json.dump(self.healthylist,healthyFile)
-                    healthyFile.close()
-                    self.chat("{} added to healthy".format(item))
-                else:
-                    self.chat('That is already in the list FailFish')
-            else:
-                self.chat("musdem fucked up Kappa no such list FailFish")#error message
-        elif(mode == 'd'):
-            if(listType == 'pasta'):
-                if(item in self.pastalist):
-                    self.pastalist.remove(item)
-                    pastaFile = open('/home/pi/hoarebot/pasta.json','w')
-                    json.dump(self.pastalist,pastaFile)
-                    pastaFile.close()
-                    self.chat("{} removed from pasta".format(item))
-                else:
-                    self.chat("That isn't in the list FailFish")
-            elif(listType == 'healthy'):
-                if(item in self.healthylist):
-                    self.healthylist.remove(item)
-                    healthyFile = open('/home/pi/hoarebot/healthy.json','w')
-                    json.dump(self.healthylist,healthyFile)
-                    healthyFile.close()
-                    self.chat("{} removed from healthy".format(item))
-                else:
-                    self.chat("That isn't in the list FailFish")
-            else:
-                self.chat("musdem fucked up Kappa no such list FailFish")#error message
+    def activateModule(self,module):
+        if(module in self.installedModules):
+            exec('import modules.{}'.format(module))
+            name = 'cmd{}'.format(module)
+            exec('{} = modules.{}.{}(self)'.format(name,module,module))
+            self.modulecommands.append(name)
+            self.modulecommands.append(exec('{}.giveChatCMD()'.format(name)))
+            self.modulecommands.append(exec('{}.giveCodeCMD()'.format(name)))
+            self.chat('Activated module {}'.format(module))
         else:
-            self.chat('musdem fucked up Kappa no such mode FailFish')#error message
+            self.chat("{} isn't installed DansGame".format(module))
 
-    def enterDraw(self,username):
-        if(self.drawActive):
-            if(username in self.drawlist):
-                self.chat('You are already in the draw {}'.format(username))
-            else:
-                self.drawlist.append(username)
-                self.chat('Entered {} into the draw.'.format(username))
-        else:
-            self.chat('There is no draw dumbass FailFish')
-    def draw(self):
-        if(len(self.drawlist) > 0):
-            self.chat('TriHard {} HAS WON THE DRAW! TriHard'.format(random.choice(self.drawlist).upper()))
-            self.drawlist = []
-        else:
-            self.chat('BibleThump No one entered the draw. BibleThump')
+    def deactivateModule(self,module):
+        pos = 0
+        while(pos <= len(self.modulecommands) - 2):
+            if('module' in self.modulecommands[pos]):
+                for(i in range(0,3)):
+                    exec('{} = None'.format(module))
+                    del self.modulecommands[pos]
+                    print('Removed module {}'.format(module))
+                    return(None)
+            pos += 3
+        print("That module isn't activated DansGame")
 
     def command(self,cmd):
-        if(cmd[1].lower() == self.commands[0]):#lists commands
-            cmd[1] = ''
-            for i in range(0,len(self.commands) - 1):
-                cmd[1] += self.commands[i][1:] + ', '
-            self.chat('The commands are: ' + cmd[1] + self.commands[len(self.commands) - 1][1:])
-        elif(cmd[1].lower() == self.commands[1]):#!slots
-            self.slots(cmd[0])
-        elif(cmd[1].lower() == self.commands[2]):#!pasta
-            self.chat(random.choice(self.pastalist))
-        elif(cmd[1].lower() == self.commands[3]):#!modspls
-            self.chat("( ͡° ͜ʖ ͡°)╯╲___卐卐卐卐 Don't mind me just taking the mods for a walk!")
-        elif(cmd[1].lower() == self.commands[4]):#!raffle
-            self.enterDraw(cmd[0])
-        elif(cmd[1].lower() == self.commands[5]):#!social
-            self.chat("Follow Reid on twitter at {} See his shitty anime taste on his MAL: {}".format('https://twitter.com/the__hoare','http://myanimelist.net/profile/lupuswarrior'))
-        elif(cmd[1].lower() == self.commands[6]):#!healthy
-            self.chat(random.choice(self.healthylist))
-        elif(cmd[1] == '!'):#are you fucking happy trevor??
-            self.chat('Good jokes {} real funny See you at FUCK YOUJ'.format(cmd[0]))
+        if(cmd[1].lower() not in self.commands and cmd[1].split(' ')[0].lower() not in self.secretcommands):
+            pos = 1
+            while(pos <= len(self.modulecommands) - 1):#module command
+                if(cmd[1].lower() in self.modulecommands[pos]):
+                    for(i in range(0,len(self.modulecommands[pos]))):
+                        if(cmd[1].split(' ')[0].lower() in self.modulecommands[pos][i]):
+                            if(self.modulecommands[pos][i][1] == 'g'):
+                                exec('{}.{}'.format(self.modulecommands[pos-1],self.modulecommands[pos+1][i]))
+                            elif(self.modulecommands[pos][i][1] == 'm' and cmd[0] in self.modslist):
+                                exec('{}.{}'.format(self.modulecommands[pos-1],self.modulecommands[pos+1][i]))
+                            else:
+                                self.chat("What do you think you are doing {}? You aren't a mod. DansGame".format(cmd[0]))
+                    break
+                pos += 3
+        elif(cmd[1].lower() in self.commands):
+            if(cmd[1].lower() == self.commands[0]):#lists commands
+                cmd[1] = ''
+                for i in range(0,len(self.commands) - 1):
+                    cmd[1] += self.commands[i][1:] + ', '
+                self.chat('The commands are: ' + cmd[1] + self.commands[len(self.commands) - 1][1:])
+            elif(cmd[1].lower() == self.commands[1]):#!modspls
+                self.chat("( ͡° ͜ʖ ͡°)╯╲___卐卐卐卐 Don't mind me just taking the mods for a walk!")
+            elif(cmd[1].lower() == self.commands[2]):#!social
+                self.chat("Follow Reid on twitter at {} See his shitty anime taste on his MAL: {}".format('https://twitter.com/the__hoare','http://myanimelist.net/profile/lupuswarrior'))
         elif(cmd[1].split(' ')[0].lower() in self.secretcommands):#mod commands
             if(cmd[0] in self.modslist):
-                if(cmd[1].lower() == self.secretcommands[0]):#lsits mod commands
+                if(cmd[1].lower() == self.secretcommands[0]):#lists mod commands
                     cmd[1] = ''
                     for i in range(0,len(self.secretcommands) - 1):
                         cmd[1] += self.secretcommands[i][1:] + ', '
@@ -189,36 +134,8 @@ class HoareBot:
                         self.ban(cmd[1].split(' ')[1])
                     else:
                         self.chat('You forgot the username {} FailFish'.format(cmd[0]))
-                elif(cmd[1].split(' ')[0].lower() == self.secretcommands[3]):#!updatepasta
-                    if(len(cmd[1].split(' ')) > 1):
-                        self.updateList(cmd[1].strip('!updatepasta '),'pasta','w')
-                    else:
-                        self.chat('You forgot the pasta {} FailFish'.format(cmd[0]))
-                elif(cmd[1].lower() == self.secretcommands[4]):#!toggleraffle
-                    self.drawActive ^= True
-                    if(self.drawActive):
-                        self.chat('Draw started, type !raffle to enter the draw.')
-                    else:
-                        self.chat('Draw stopped.')
-                elif(cmd[1].lower() == self.secretcommands[5]):#!raffleDraw
-                    self.draw()
-                elif(cmd[1].split(' ')[0].lower() == self.secretcommands[6]):#!updatehealthy
-                    if(len(cmd[1].split(' ')) > 1):
-                        self.updateList(cmd[1].strip('!updatehealthy '),'healthy','w')
-                    else:
-                        self.chat('You forgot the lewd {} FailFish'.format(cmd[0]))
-                elif(cmd[1].split(' ')[0].lower() == self.secretcommands[7]):#!removepasta
-                    if(len(cmd[1].split(' ')) > 1):
-                        self.updateList(cmd[1].strip('!removepasta '),'pasta','d')
-                    else:
-                        self.chat('You forgot the pasta {} FailFish'.format(cmd[0]))
-                elif(cmd[1].split(' ')[0].lower() == self.secretcommands[8]):#!removehealthy
-                    if(len(cmd[1].split(' ')) > 1):
-                        self.updateList(cmd[1].strip('!removehealthy '),'healthy','d')
-                    else:
-                        self.chat('You forgot the lewd {} FailFish'.format(cmd[0]))
             else:
-                self.chat('What do you think you are doing {} DansGame'.format(cmd[0]))
+                self.chat("What do you think you are doing {}? You aren't a mod. DansGame".format(cmd[0]))
         else:
             self.chat('{} is not a command; type !commands to get a list.'.format(cmd[1][1:]))
 
