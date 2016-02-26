@@ -12,7 +12,7 @@ class raffle:
 
     #this returns a list of all code commands and how they should be set up
     def giveCodeCMD(self):
-        return ["enterDraw(cmd[0])","draw()","toggleRaffle()"]
+        return ["{}.enterDraw(cmd[0])","{}.draw()","{}.toggleRaffle()"]
 
     def enterDraw(username):
         if(self.drawActive):

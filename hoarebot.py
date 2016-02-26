@@ -103,9 +103,9 @@ class HoareBot:
                     for(i in range(0,len(self.modulecommands[pos]))):
                         if(cmd[1].split(' ')[0].lower() in self.modulecommands[pos][i]):
                             if(self.modulecommands[pos][i][1] == 'g'):
-                                exec('{}.{}'.format(self.modulecommands[pos-1],self.modulecommands[pos+1][i]))
+                                exec(self.modulecommands[pos+1][i].format(self.modulecommands[pos-1]))
                             elif(self.modulecommands[pos][i][1] == 'm' and cmd[0] in self.modslist):
-                                exec('{}.{}'.format(self.modulecommands[pos-1],self.modulecommands[pos+1][i]))
+                                exec(self.modulecommands[pos+1][i].format(self.modulecommands[pos-1]))
                             else:
                                 self.chat("What do you think you are doing {}? You aren't a mod. DansGame".format(cmd[0]))
                     break

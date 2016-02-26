@@ -12,7 +12,7 @@ class slots:
 
     #this returns a list of all code commands and how they should be set up
     def giveCMD(self):
-        return ["slots(cmd[0])"]
+        return ["{}.slots(cmd[0])"]
 
     def slots(self,username):
         if(self.willForce3 > random.randint(10,20)):

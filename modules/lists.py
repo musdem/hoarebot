@@ -19,29 +19,29 @@ class lists:
     #this returns a list of all code commands and how they should be set up
     def giveCMD(self):#this should be redone to fit with command method in hoarebot
         return [#!pasta
-            """sendItem('pasta')
+            """{}.sendItem('pasta')
             """,#!healthy
-            """sendItem('healthy')
+            """{}.sendItem('healthy')
             """,#!updatepasta
             """if len(cmd[1].split(' ')) > 1:
-                self.updateList(cmd[1].strip('!updatepasta '),'pasta','w')
+                {}.updateList(cmd[1].strip('!updatepasta '),'pasta','w')
             else:
-                self.chat('You forgot the pasta {} FailFish'.format(cmd[0]))]
+                self.chat('You forgot the pasta ' + cmd[0] + ' FailFish')
             """,#!removepasta
             """if len(cmd[1].split(' ')) > 1:
-                self.updateList(cmd[1].strip('!removepasta '),'pasta','d')
+                {}.updateList(cmd[1].strip('!removepasta '),'pasta','d')
             else:
-                self.chat('You forgot the pasta {} FailFish'.format(cmd[0]))
+                self.chat('You forgot the pasta ' + cmd[0] + ' FailFish')
             """,#!updatehealthy
             """if len(cmd[1].split(' ')) > 1:
-                self.updateList(cmd[1].strip('!updatehealthy '),'healthy','w')
+                {}.updateList(cmd[1].strip('!updatehealthy '),'healthy','w')
             else:
-                self.chat('You forgot the lewd {} FailFish'.format(cmd[0]))
+                {}.chat('You forgot the lewd ' + cmd[0] + ' FailFish')
             """,#!removehealthy
             """if len(cmd[1].split(' ')) > 1:
-                self.updateList(cmd[1].strip('!removehealthy '),'healthy','d')
+                {}.updateList(cmd[1].strip('!removehealthy '),'healthy','d')
             else:
-                self.chat('You forgot the lewd {} FailFish'.format(cmd[0]))
+                {}.chat('You forgot the lewd ' + cmd[0] + ' FailFish')
             """]
 
     def updateList(item,listType,mode):
@@ -92,6 +92,6 @@ class lists:
 
     def sendItem(listType):
         if(listType == 'healthy'):
-            return random.choice(self.healthylist)
+            self.bot.chat(random.choice(self.healthylist))
         elif(listType == 'pasta'):
-            return random.choice(self.pastalist)
+            self.bot.chat(random.choice(self.pastalist))
