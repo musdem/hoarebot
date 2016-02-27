@@ -36,12 +36,12 @@ class lists:
             """if len(cmd[1].split(' ')) > 1:
                 {}.updateList(cmd[1].strip('!updatehealthy '),'healthy','w')
             else:
-                {}.chat('You forgot the lewd ' + cmd[0] + ' FailFish')
+                self.chat('You forgot the lewd ' + cmd[0] + ' FailFish')
             """,#!removehealthy
             """if len(cmd[1].split(' ')) > 1:
                 {}.updateList(cmd[1].strip('!removehealthy '),'healthy','d')
             else:
-                {}.chat('You forgot the lewd ' + cmd[0] + ' FailFish')
+                self.chat('You forgot the lewd ' + cmd[0] + ' FailFish')
             """]
 
     def updateList(item,listType,mode):
