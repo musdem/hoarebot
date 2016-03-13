@@ -68,7 +68,7 @@ class HoareBot:
 
     def refreshModules(self):
         self.installedModules = os.listdir('./modules')
-        for(i in range(0,len(self.installedModules))):
+        for i in range(0,len(self.installedModules)):
             self.installedModules = self.installedModules[i].replace('.py','')
 
     def activateModule(self,module):
