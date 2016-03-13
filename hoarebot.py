@@ -87,7 +87,7 @@ class HoareBot:
         pos = 0
         while(pos <= len(self.modulecommands) - 2):
             if('module' in self.modulecommands[pos]):
-                for(i in range(0,3)):
+                for i in range(0,3):
                     exec('{} = None'.format(module))
                     del self.modulecommands[pos]
                     print('Removed module {}'.format(module))
@@ -100,7 +100,7 @@ class HoareBot:
             pos = 1
             while(pos <= len(self.modulecommands) - 1):#module command
                 if(cmd[1].lower() in self.modulecommands[pos]):
-                    for(i in range(0,len(self.modulecommands[pos]))):
+                    for i in range(0,len(self.modulecommands[pos])):
                         if(cmd[1].split(' ')[0].lower() in self.modulecommands[pos][i]):
                             if(self.modulecommands[pos][i][1] == 'g'):
                                 exec(self.modulecommands[pos+1][i].format(self.modulecommands[pos-1]))
