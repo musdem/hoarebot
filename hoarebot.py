@@ -11,6 +11,10 @@ class HoareBot:
         passwordFile = open('/home/pi/hoarebot/oauthIRC.json')
         self.password = json.load(passwordFile)[0]
         passwordFile.close()
+        #reading in modspls messages
+        modsplsFile = open('/home/pi/hoarebot/modspls.json')
+        self.modsplsList = json.load(modsplsFile)
+        modsplsFile.close()
         #initializing all of the global variables and twitch information
         self.server = 'irc.twitch.tv'
         self.port = 6667
@@ -115,7 +119,7 @@ class HoareBot:
                     cmd[1] += self.commands[i][1:] + ', '
                 self.chat('The commands are: ' + cmd[1] + self.commands[len(self.commands) - 1][1:])
             elif(cmd[1].lower() == self.commands[1]):#!modspls
-                self.chat("( ͡° ͜ʖ ͡°)╯╲___卐卐卐卐 Don't mind me just taking the mods for a walk!")
+                self.chat(random.choice(self.modsplsList))
             elif(cmd[1].lower() == self.commands[2]):#!social
                 self.chat("Follow Reid on twitter at {} See his shitty anime taste on his MAL: {}".format('https://twitter.com/the__hoare','http://myanimelist.net/profile/lupuswarrior'))
         elif(cmd[1].split(' ')[0].lower() in self.secretcommands):#mod commands
