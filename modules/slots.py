@@ -31,6 +31,6 @@ class slots:
             for i in range(0,len(username)):
                 uNameHype += username.upper()[i] + ' TriHard '
                 uNameHype += 'H TriHard Y TriHard P TriHard E TriHard'
-                self.bot.chat(uNameHype)
+            self.bot.chat(uNameHype)
         elif(outcome == 'Kreygasm | Kreygasm | Kreygasm'):
             self.bot.chat('Kreygasm For later tonight {} https://www.youtube.com/watch?v=P-Vvm7M4Lig Kreygasm'.format(username))

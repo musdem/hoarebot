@@ -5,8 +5,6 @@ import sys
 import os
 import json
 
-#possibly make an initialization method in all modules that returns the possible commands and what they do
-
 class HoareBot:
     def __init__(self,channel):
         #reading in the oauth token for irc chat
