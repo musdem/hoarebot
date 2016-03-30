@@ -1,11 +1,7 @@
 ### HOARE BOT
 #      
-### INSTALL
-#     
-To install you must first copy hoarebot.sh to /etc/init.d/hoarebot
-#     
-You must then add it as a service using update-rc.d hoarebot defaults
+The C port of hoarebot.
 #   
-This will add it as a service and have it auto start with the server boot
-#    
-Use sudo service hoarebot {start|stop|restart} to control the service
+This will be slow going but I should work on it during the summer
+#   
+This is just a test to see if I like running the bot in C rather than pyhton
