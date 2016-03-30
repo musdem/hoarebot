@@ -18,6 +18,10 @@ class HoareBot:
         healthyFile = open('/home/pi/hoarebot/healthy.json')
         self.healthylist = json.load(healthyFile)
         healthyFile.close()
+        #reading in modspls messages
+        modsplsFile = open('/home/pi/hoarebot/modspls.json')
+        self.modsplsList = json.load(modsplsFile)
+        modsplsFile.close()
         #initializing all of the global variables and twitch information
         self.server = 'irc.twitch.tv'
         self.port = 6667
@@ -166,7 +170,7 @@ class HoareBot:
         elif(cmd[1].lower() == self.commands[2]):#!pasta
             self.chat(random.choice(self.pastalist))
         elif(cmd[1].lower() == self.commands[3]):#!modspls
-            self.chat("( ͡° ͜ʖ ͡°)╯╲___卐卐卐卐 Don't mind me just taking the mods for a walk!")
+            self.chat(random.choice(self.modsplsList))
         elif(cmd[1].lower() == self.commands[4]):#!raffle
             self.enterDraw(cmd[0])
         elif(cmd[1].lower() == self.commands[5]):#!social
