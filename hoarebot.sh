@@ -6,7 +6,7 @@
 # Start the service hoarebot
 start()
 {
-    /usr/bin/python3 /home/pi/hoarebot/hoarebot.py "#lupuswarrior"&
+    python3 /home/pi/hoarebot/hoarebot.py "#lupuswarrior"&
     echo "Hoarebot started"
 }
 # Restart the service hoarebot
