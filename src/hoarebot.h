@@ -4,4 +4,4 @@ struct Channel
     char name[128];
 };
 
-void joinChannel(struct Channel chnl);
+int joinChannel(struct Channel chnl);
