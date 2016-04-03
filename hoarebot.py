@@ -3,7 +3,6 @@ import socket
 import time
 import sys
 import json
-import time
 
 class HoareBot:
     def __init__(self,channel):
