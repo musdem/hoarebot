@@ -31,15 +31,28 @@ class HoareBot:
         self.modulecommands = []#use json to load previously installed modules
         #creating the socket and connecting to twitch irc server
         self.irc = socket.socket()
-        self.irc.connect((self.server, self.port))
+        self.connect()
+        #setting the seed for slots rng
+        random.seed(channel)
+
+    def connect(self):
+        tries = 0
+        trying = False
+        while tries < 100 and not trying:#make sure the bot doesn't crash on failed connect
+            try:
+                self.irc.connect((self.server, self.port))
+                trying = True
+            except Exception as e:
+                trying = False
+                tries += 1
+        if tries == 100:
+            return -1
         #loging in and joining the channel that was passed into initialization
         self.irc.send('PASS {}\r\n'.format(self.password).encode('utf-8'))
         self.irc.send('USER {} {} {}\r\n'.format(self.botnick, self.botnick, self.botnick).encode('utf-8'))
         self.irc.send('NICK {}\r\n'.format(self.botnick).encode('utf-8'))
         self.irc.send('JOIN {}\r\n'.format(self.channel).encode('utf-8'))
         self.irc.send('CAP REQ :twitch.tv/commands\r\n'.encode('utf-8'))
-        #setting the seed for slots rng
-        random.seed(channel)
 
     def timeout(self,username,length):
         self.chat('/timeout {} {}'.format(username, length))
@@ -143,6 +156,8 @@ class HoareBot:
 
     def run(self):
         self.setMods()
+        lastPing = time.time()
+        pingThreshold = 5 * 60 #5 mintues
         while 1:
             raw = self.irc.recv(1024).decode('utf-8')
             #if twitch pings the server we must ping back in order to keep the connection alive
@@ -159,6 +174,10 @@ class HoareBot:
                     elif('fuck you hoarebot' in message[1].lower()):
                         self.timeout(message[0],1)
                         self.chat('EleGiggle Fuck you too {} SoBayed'.format(message[0]))
+            if (time.time() - lastPing) > pingThreshold:#reconnects if too much time has passed since last ping
+                if self.connect() == -1:
+                    print("Couldn't connect to the internet")
+                    break
 
 if __name__ == '__main__':
     bot = HoareBot(sys.argv[1])
