@@ -46,7 +46,7 @@ class HoareBot:
 
     def connect(self):
         tries = 0
-        while(tries < 100)#make sure the bot doesn't crash on failed connect
+        while tries < 100:#make sure the bot doesn't crash on failed connect
             try:
                 self.irc.connect((self.server, self.port))
             except Exception as e:
