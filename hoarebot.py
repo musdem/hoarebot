@@ -45,7 +45,14 @@ class HoareBot:
         random.seed(channel)
 
     def connect(self):
-        self.irc.connect((self.server, self.port))
+        tries = 0
+        while(tries < 100)#make sure the bot doesn't crash on failed connect
+            try:
+                self.irc.connect((self.server, self.port))
+            except Exception as e:
+                tries += 1
+        if tries == 100:
+            return -1
         #loging in and joining the channel that was passed into initialization
         self.irc.send('PASS {}\r\n'.format(self.password).encode('utf-8'))
         self.irc.send('USER {} {} {}\r\n'.format(self.botnick, self.botnick, self.botnick).encode('utf-8'))
@@ -252,7 +259,9 @@ class HoareBot:
                         self.timeout(message[0],1)
                         self.chat('EleGiggle Fuck you too {} SoBayed'.format(message[0]))
             if (time.time() - lastPing) > pingThreshold:#reconnects if too much time has passed since last ping
-                self.connect()
+                if self.connect() == -1:
+                    print("Couldn't connect to the internet")
+                    break
 
 if __name__ == '__main__':
     bot = HoareBot(sys.argv[1])
