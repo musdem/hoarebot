@@ -1,3 +1,6 @@
+#ifndef HOAREBOT_H
+#define HOAREBOT_H
+
 struct Channel
 {
     pid_t PID;
@@ -5,3 +8,5 @@ struct Channel
 };
 
 int joinChannel(struct Channel chnl);
+
+#endif
