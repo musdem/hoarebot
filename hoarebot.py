@@ -54,6 +54,8 @@ class HoareBot:
                 trying = False
                 tries += 1
         if tries == 100:
+            with open("/home/pi/botDC", 'a'):#make a file if bot dies because of no internet
+                os.utime("/home/pi/botDC",None)
             return -1
         #loging in and joining the channel that was passed into initialization
         self.irc.send('PASS {}\r\n'.format(self.password).encode('utf-8'))
