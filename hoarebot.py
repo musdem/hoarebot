@@ -18,6 +18,10 @@ class HoareBot:
         healthyFile = open('/home/pi/hoarebot/healthy.json')
         self.healthylist = json.load(healthyFile)
         healthyFile.close()
+        #reading in the current quote list
+        quoteFile = open('/home/pi/hoarebot/quote.json')
+        self.quotelist = json.load(quoteFile)
+        quoteFile.close()
         #reading in modspls messages
         modsplsFile = open('/home/pi/hoarebot/modspls.json')
         self.modsplsList = json.load(modsplsFile)
@@ -35,8 +39,8 @@ class HoareBot:
         self.modslist = []
         #setting the list of commands and emotes for slots
         self.emotes = ['Kappa','KappaPride','EleGiggle','BibleThump','PogChamp','TriHard','CoolCat','WutFace','Kreygasm']
-        self.commands = ['!commands','!slots','!pasta','!modspls','!raffle','!social','!healthy']
-        self.secretcommands = ['!modcommands','!refreshmods','!ban','!updatepasta','!toggleraffle','!raffledraw','!updatehealthy','!removepasta','!removehealthy']
+        self.commands = ['!commands','!slots','!pasta','!modspls','!raffle','!social','!healthy','!quote']
+        self.secretcommands = ['!modcommands','!refreshmods','!ban','!updatepasta','!toggleraffle','!raffledraw','!updatehealthy','!removepasta','!removehealthy','!updatequote','!removequote']
         #creating the socket and connecting to twitch irc server
         self.irc = socket.socket()
         self.connect()
@@ -132,6 +136,15 @@ class HoareBot:
                     self.chat("{} added to healthy".format(item))
                 else:
                     self.chat('That is already in the list FailFish')
+            elif(listType == 'quote'):
+                if(not(item in self.quotelist)):
+                    self.quotelist.append(item)
+                    quoteFile = open('/home/pi/hoarebot/quote.json','w')
+                    json.dump(self.quotelist,quoteFile)
+                    quoteFile.close()
+                    self.chat("{} added to quote".format(item))
+                else:
+                    self.chat('That is already in the list FailFish')
             else:
                 self.chat("musdem fucked up Kappa no such list FailFish")#error message
         elif(mode == 'd'):
@@ -151,6 +164,15 @@ class HoareBot:
                     json.dump(self.healthylist,healthyFile)
                     healthyFile.close()
                     self.chat("{} removed from healthy".format(item))
+                else:
+                    self.chat("That isn't in the list FailFish")
+            elif(listType == 'quote'):
+                if(item in self.quotelist):
+                    self.quotelist.remove(item)
+                    quoteFile = open('/home/pi/hoarebot/quote.json','w')
+                    json.dump(self.quotelist,quoteFile)
+                    quoteFile.close()
+                    self.chat("{} removed from quote".format(item))
                 else:
                     self.chat("That isn't in the list FailFish")
             else:
@@ -192,6 +214,8 @@ class HoareBot:
             self.chat("Follow Reid on twitter at {} See his shitty anime taste on his MAL: {}".format('https://twitter.com/the__hoare','http://myanimelist.net/profile/lupuswarrior'))
         elif(cmd[1].lower() == self.commands[6]):#!healthy
             self.chat(random.choice(self.healthylist))
+        elif(cmd[1].lower() == self.commands[7]):#!quote
+            self.chat(random.choice(self.quotelist))
         elif(cmd[1] == '!'):#are you fucking happy trevor??
             self.chat('Are you fucking happy Trevor?')
         elif(cmd[1].split(' ')[0].lower() in self.secretcommands):#mod commands
@@ -236,6 +260,16 @@ class HoareBot:
                         self.updateList(cmd[1].strip('!removehealthy '),'healthy','d')
                     else:
                         self.chat('You forgot the lewd {} FailFish'.format(cmd[0]))
+                elif(cmd[1].split(' ')[0].lower() == self.secretcommands[9]):#!updatequote
+                    if(len(cmd[1].split(' ')) > 1):
+                        self.updateList(cmd[1].strip('!updatequote '),'quote','w')
+                    else:
+                        self.chat('You forgot the quote {} FailFish'.format(cmd[0]))
+                elif(cmd[1].split(' ')[0].lower() == self.secretcommands[10]):#!removequote
+                    if(len(cmd[1].split(' ')) > 1):
+                        self.updateList(cmd[1].strip('!removequote '),'quote','d')
+                    else:
+                        self.chat('You forgot the quote {} FailFish'.format(cmd[0]))
             else:
                 self.chat('What do you think you are doing {} DansGame'.format(cmd[0]))
         else:
