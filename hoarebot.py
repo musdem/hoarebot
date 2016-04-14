@@ -262,7 +262,7 @@ class HoareBot:
                         self.chat('You forgot the lewd {} FailFish'.format(cmd[0]))
                 elif(cmd[1].split(' ')[0].lower() == self.secretcommands[9]):#!updatequote
                     if(len(cmd[1].split(' ')) > 1):
-                        self.updateList((cmd[1].strip('!updatequote ') + " - lupuswarrior {}".format(time.strftime("%Y"))),'quote','w')
+                        self.updateList(('"' + cmd[1].strip('!updatequote ') + '" - lupuswarrior {}'.format(time.strftime("%Y"))),'quote','w')
                     else:
                         self.chat('You forgot the quote {} FailFish'.format(cmd[0]))
                 elif(cmd[1].split(' ')[0].lower() == self.secretcommands[10]):#!removequote
