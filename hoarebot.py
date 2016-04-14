@@ -168,7 +168,7 @@ class HoareBot:
                     self.chat("That isn't in the list FailFish")
             elif(listType == 'quote'):
                 if(any(item in i for i in self.quotelist)):
-                    self.quotelist.remove(item)
+                    self.quotelist.remove([i for i in self.quotelist if item in i][0])
                     quoteFile = open('/home/pi/hoarebot/quote.json','w')
                     json.dump(self.quotelist,quoteFile)
                     quoteFile.close()
@@ -262,7 +262,7 @@ class HoareBot:
                         self.chat('You forgot the lewd {} FailFish'.format(cmd[0]))
                 elif(cmd[1].split(' ')[0].lower() == self.secretcommands[9]):#!updatequote
                     if(len(cmd[1].split(' ')) > 1):
-                        self.updateList(cmd[1].strip('!updatequote ').append(" - lupuswarrior {}".format(time.strptime("%Y"))),'quote','w')
+                        self.updateList((cmd[1].strip('!updatequote ') + " - lupuswarrior {}".format(time.strftime("%Y"))),'quote','w')
                     else:
                         self.chat('You forgot the quote {} FailFish'.format(cmd[0]))
                 elif(cmd[1].split(' ')[0].lower() == self.secretcommands[10]):#!removequote
