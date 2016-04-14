@@ -215,7 +215,7 @@ class HoareBot:
         elif(cmd[1].lower() == self.commands[6]):#!healthy
             self.chat(random.choice(self.healthylist))
         elif(cmd[1].lower() == self.commands[7]):#!quote
-            self.chat(random.choice(self.quotelist))
+            self.chat("{} - lupuswarrior Current Year".format(random.choice(self.quotelist)))
         elif(cmd[1] == '!'):#are you fucking happy trevor??
             self.chat('Are you fucking happy Trevor?')
         elif(cmd[1].split(' ')[0].lower() in self.secretcommands):#mod commands
