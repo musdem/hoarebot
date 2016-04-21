@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/socket.h>
 #include "daemonize.h"
 #include "hoarebot.h"
 
@@ -37,6 +38,17 @@ int main(int argc, char *argv[])
     while(1)
     {
         //TODO make bot
+    }
+    return 0;
+}
+
+int joinChannel(struct Channel chnl)
+{
+    int irc;
+    irc = socket(AF_UNIX,SOCK_STREAM,0);
+    if(irc == -1)
+    {
+        return -1;
     }
     return 0;
 }
