@@ -39,7 +39,7 @@ class HoareBot:
         self.modslist = []
         #setting the list of commands and emotes for slots
         self.emotes = ['Kappa','KappaPride','EleGiggle','BibleThump','PogChamp','TriHard','CoolCat','WutFace','Kreygasm']
-        self.commands = ['!commands','!slots','!pasta','!modspls','!raffle','!social','!healthy','!quote']
+        self.commands = ['!commands','!slots','!pasta','!modspls','!raffle','!social','!healthy','!quote','!braveid']
         self.secretcommands = ['!modcommands','!refreshmods','!ban','!updatepasta','!toggleraffle','!raffledraw','!updatehealthy','!removepasta','!removehealthy','!updatequote','!removequote']
         #creating the socket and connecting to twitch irc server
         self.irc = socket.socket()
@@ -210,12 +210,14 @@ class HoareBot:
             self.chat(random.choice(self.modsplsList))
         elif(cmd[1].lower() == self.commands[4]):#!raffle
             self.enterDraw(cmd[0])
-        elif(cmd[1].lower() == self.commands[5]):#!social
+        elif(cmd[1].lower() == self.commands[5]):#!social yea stuff like this will have custom values in Cport
             self.chat("Follow Reid on twitter at {} See his shitty anime taste on his MAL: {}".format('https://twitter.com/the__hoare','http://myanimelist.net/profile/lupuswarrior'))
         elif(cmd[1].lower() == self.commands[6]):#!healthy
             self.chat(random.choice(self.healthylist))
         elif(cmd[1].lower() == self.commands[7]):#!quote
             self.chat(random.choice(self.quotelist))
+        elif(cmd[1].lower() == self.commands[8]):#!braveid
+            self.chat("lupuswarrior's Brave Frontier ID is 9219505518")
         elif(cmd[1] == '!'):#are you fucking happy trevor??
             self.chat('Are you fucking happy Trevor?')
         elif(cmd[1].split(' ')[0].lower() in self.secretcommands):#mod commands
