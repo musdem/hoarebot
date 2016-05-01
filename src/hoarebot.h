@@ -17,9 +17,15 @@
 #define BOTNICK "hoarebot"
 #define PID_DIR "/run/"
 
-struct Message
+struct getMsg
 {
     char username[128];
+    char text[BUFSIZ];
+};
+struct sendMsg
+{
+    int irc;
+    char channel[128];
     char text[BUFSIZ];
 };
 
@@ -31,6 +37,7 @@ struct Channel
 
 int twitchChatConnect();
 int joinChannel(int irc, char *channel, char *botPass);
-int chat(int irc, char *channel, char *message);
+int chat(struct sendMsg *botMsg);
+int parseRaw(char *raw, struct getMsg *chatMsg);
 
 #endif
