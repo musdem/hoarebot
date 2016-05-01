@@ -1,5 +1,8 @@
 #include "hoarebot.h"
 
+char commands[NUM_CMD][128] = {"!commands","!slots","!pasta","!modspls","!raffle","!social","!healthy","!quote","!braveid"};
+char secretCommands[NUM_MOD_CMD][128] = {"!modcommands","!refreshmods","!ban","!updatepasta","!toggleraffle","!raffledraw","!updatehealthy","!removepasta","!removehealthy","!updatequote","!removequote"};
+
 int main(int argc, char *argv[])
 {
     int size, irc;
@@ -7,7 +10,7 @@ int main(int argc, char *argv[])
     char raw[BUFSIZ], botPass[37], channel[128];
     struct Channel channelList[1024];//maybe use malloc to assign size based on what is read in from what bot instances are running
     struct getMsg chatMsg;
-    struct sendInfo msgInfo;
+    struct sendMsg botMsg;
     FILE* passFile;
     passFile = fopen("pass","r");
     fgets(botPass,37,passFile);
@@ -44,8 +47,8 @@ int main(int argc, char *argv[])
                 {
                     printf("Couldn't join the channel\n");
                 }
-                msgInfo.irc = irc;
-                strcpy(msgInfo.channel,channel);
+                botMsg.irc = irc;
+                strcpy(botMsg.channel,channel);
             }
             break;
         default:
@@ -54,7 +57,6 @@ int main(int argc, char *argv[])
     while(1)
     {
         size = read(irc,raw,BUFSIZ);
-        printf("Raw message: %s\n",raw);
         if(strstr(raw,"PING :"))
         {
             size = sprintf(raw,"PONG :tmi.twitch.tv\r\n");
@@ -66,13 +68,33 @@ int main(int argc, char *argv[])
         }
         else if(parseRaw(raw,&chatMsg))
         {
-            printf("Username: %s\nMessage: %s\n",chatMsg.username,chatMsg.text);
             if(chatMsg.text[0] == '!')
             {
-                //command(chatMsg);
-                chat("Command issued", &msgInfo);
+                command(&chatMsg, &botMsg);
             }
         }
     }
+    return 0;
+}
+
+int command(struct getMsg *chatMsg, struct sendMsg *botMsg)
+{
+    if(strcmp(chatMsg->text,commands[0]) == 0)
+    {
+        int i;
+        for(i = 0;i < NUM_CMD - 1;i++)
+        {
+            strcat(botMsg->text,commands[i]);
+            strcat(botMsg->text,", ");
+        }
+        strcat(botMsg->text,commands[i]);
+        chat(botMsg);
+    }
+    else
+    {
+        sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);
+        chat(botMsg);
+    }
+    botMsg->text[0] = '\0';//nullify the string for next message
     return 0;
 }

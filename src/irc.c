@@ -85,16 +85,15 @@ int joinChannel(int irc, char *channel, char *botPass)
         printf("couldn't write CAP REQ to server: %i\n",errno);
         return -1;
     }
-    printf("succsessful!\n");
     return 0;
 }
 
-int chat(char *message, struct sendInfo *msgInfo)
+int chat(struct sendMsg *botMsg)
 {
     int size;
     char buff[BUFSIZ];
-    size = sprintf(buff, "PRIVMSG %s :%s\r\n",msgInfo->channel,message);
-    if(write(msgInfo->irc,buff,size) == -1)
+    size = sprintf(buff, "PRIVMSG %s :%s\r\n",botMsg->channel,botMsg->text);
+    if(write(botMsg->irc,buff,size) == -1)
     {
         printf("Couldn't write chat message to server: %i\n",errno);
         return -1;
