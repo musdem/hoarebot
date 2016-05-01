@@ -22,11 +22,10 @@ struct getMsg
     char username[128];
     char text[BUFSIZ];
 };
-struct sendMsg
+struct sendInfo
 {
     int irc;
     char channel[128];
-    char text[BUFSIZ];
 };
 
 struct Channel
@@ -37,7 +36,7 @@ struct Channel
 
 int twitchChatConnect();
 int joinChannel(int irc, char *channel, char *botPass);
-int chat(struct sendMsg *botMsg);
+int chat(struct sendInfo *msgInfo, char *message);
 int parseRaw(char *raw, struct getMsg *chatMsg);
 
 #endif

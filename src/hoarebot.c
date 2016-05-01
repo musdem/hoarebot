@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
     char raw[BUFSIZ], botPass[37], channel[128];
     struct Channel channelList[1024];//maybe use malloc to assign size based on what is read in from what bot instances are running
     struct getMsg chatMsg;
-    struct sendMsg botMsg;
+    struct sendInfo msgInfo;
     FILE* passFile;
     passFile = fopen("pass","r");
     fgets(botPass,37,passFile);
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         case 0:
             if(argc < 2)
             {
-                //this should list currect channels with PIDs
+                //TODO list currect channels with PIDs
                 printf("No channel name\n");
                 exit(0);
             }
@@ -38,14 +38,14 @@ int main(int argc, char *argv[])
                 irc = twitchChatConnect();//the irc socket file descriptor
                 if(irc == -1)
                 {
-                    printf("Coudldn't connect to twitch servers.\n");
+                    printf("Couldn't connect to twitch servers.\n");
                 }
                 if(joinChannel(irc, channel, botPass) == -1)
                 {
                     printf("Couldn't join the channel\n");
                 }
-                botMsg.irc = irc;
-                strcpy(botMsg.channel,channel);
+                msgInfo.irc = irc;
+                strcpy(msgInfo.channel,channel);
             }
             break;
         default:
@@ -70,8 +70,7 @@ int main(int argc, char *argv[])
             if(chatMsg.text[0] == '!')
             {
                 //command(chatMsg);
-                strcpy(botMsg.text,"Command issued");//testing
-                chat(&botMsg);
+                chat(&msgInfo, "Command issued");
             }
         }
     }
@@ -92,7 +91,6 @@ int parseRaw(char *raw, struct getMsg *chatMsg)
         textOffset = rawPos + 1;
         for(rawPos += 1;raw[rawPos] != '\r';rawPos++)
         {
-            printf("rawPos:%i\ntextPos:%i\n",rawPos, rawPos - textOffset);
             chatMsg->text[rawPos - textOffset] = raw[rawPos];
         }
         chatMsg->text[rawPos - textOffset] = '\0';
@@ -168,12 +166,12 @@ int joinChannel(int irc, char *channel, char *botPass)
     return 0;
 }
 
-int chat(struct sendMsg *botMsg)
+int chat(struct sendInfo *msgInfo, char *message)
 {
     int size;
     char buff[BUFSIZ];
-    size = sprintf(buff, "PRIVMSG %s :%s\r\n",botMsg->channel,botMsg->text);
-    if(write(botMsg->irc,buff,size) == -1)
+    size = sprintf(buff, "PRIVMSG %s :%s\r\n",msgInfo->channel,message);
+    if(write(msgInfo->irc,buff,size) == -1)
     {
         printf("Couldn't write chat message to server: %i\n",errno);
         return -1;
