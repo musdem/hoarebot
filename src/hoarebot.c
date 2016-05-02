@@ -1,14 +1,17 @@
 #include "hoarebot.h"
 
 char commands[NUM_CMD][128] = {"!commands","!slots","!pasta","!modspls","!raffle","!social","!healthy","!quote","!braveid"};
-char secretCommands[NUM_MOD_CMD][128] = {"!modcommands","!refreshmods","!ban","!updatepasta","!toggleraffle","!raffledraw","!updatehealthy","!removepasta","!removehealthy","!updatequote","!removequote"};
+char secretCommands[NUM_MOD_CMD][128] = {"!modcommands","!refreshmods","!ban","!updatepasta","!removepasta","!toggleraffle","!raffledraw","!updatehealthy","!removehealthy","!updatequote","!removequote"};
+char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
 
 int main(int argc, char *argv[])
 {
     int size, irc;
     irc = 0;
     char raw[BUFSIZ], botPass[37], channel[128];
-    struct Channel channelList[1024];//maybe use malloc to assign size based on what is read in from what bot instances are running
+    struct Channel channelList[1024];//get numChnl from file
+    //struct Channel *channelList;
+    //channelList = (struct Channel*) malloc(numChnl * sizeof(struct Channel));
     struct getMsg chatMsg;
     struct sendMsg botMsg;
     FILE* passFile;
@@ -16,7 +19,7 @@ int main(int argc, char *argv[])
     fgets(botPass,37,passFile);
     fclose(passFile);
     //TODO read in PID list
-    switch(daemon(0,1))//this is 0,1 for testing should let this be set at runtime
+    switch(daemon(0,0))
     {
         case -1:
             printf("Daemonizing has failed\n");
@@ -77,12 +80,12 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-int command(struct getMsg *chatMsg, struct sendMsg *botMsg)
+void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 {
-    if(strcmp(chatMsg->text,commands[0]) == 0)
+    if(!strcmp(chatMsg->text,commands[0]))
     {
         int i;
-        for(i = 0;i < NUM_CMD - 1;i++)
+        for(i = 0;i < NUM_CMD - 1;i++)//!commands
         {
             strcat(botMsg->text,commands[i]);
             strcat(botMsg->text,", ");
@@ -90,11 +93,20 @@ int command(struct getMsg *chatMsg, struct sendMsg *botMsg)
         strcat(botMsg->text,commands[i]);
         chat(botMsg);
     }
+    else if(!strcmp(chatMsg->text,commands[1]))//!slots
+    {
+        slots(chatMsg->username, botMsg);
+    }
     else
     {
         sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);
         chat(botMsg);
     }
     botMsg->text[0] = '\0';//nullify the string for next message
-    return 0;
+}
+
+void slots(char *username, struct sendMsg *botMsg)
+{
+    sprintf(botMsg->text,"%s | %s | %s",emotes[rand() % 9],emotes[rand() % 9],emotes[rand() % 9]);
+    chat(botMsg);
 }

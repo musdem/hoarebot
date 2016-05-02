@@ -13,6 +13,7 @@ struct Channel
     char name[128];
 };
 
-int command(struct getMsg *chatMsg, struct sendMsg *botMsg);
+void command(struct getMsg *chatMsg, struct sendMsg *botMsg);
+void slots(char *username, struct sendMsg *botMsg);
 
 #endif
