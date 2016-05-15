@@ -1,45 +1,71 @@
 #include "hoarebot.h"
 
-char commands[NUM_CMD][128] = {"!commands","!slots","!pasta","!modspls","!raffle","!social","!healthy","!quote","!braveid"};
-char secretCommands[NUM_MOD_CMD][128] = {"!modcommands","!refreshmods","!ban","!updatepasta","!removepasta","!toggleraffle","!raffledraw","!updatehealthy","!removehealthy","!updatequote","!removequote"};
+//bot command variables
+char commands[NUM_CMD][32] = {"!commands","!slots","!pasta","!modspls","!raffle","!social","!healthy","!quote"};
+char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!ban","!updatepasta","!removepasta","!toggleraffle","!raffledraw","!updatehealthy","!removehealthy","!updatequote","!removequote"};
+//slots variables
+int force = 1;
 char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
+//list variables
+int numPasta = 0;
+list_t pastaList;
+int numModsPls = 0;
+list_t modsPlsList;
+int numHealthy = 0;
+list_t healthyList;
+int numQuote = 0;
+list_t quoteList;
+//raffle variables
+int numEntrants = 0;
+re_t raffleNames;
+//social variables
+char socialSetVar = 0;
+char *streamerName;
+char *facebook;
+char *twitter;
+char *youtube;
+char *MAL;
 
 int main(int argc, char *argv[])
 {
     int size, irc;
     irc = 0;
     char raw[BUFSIZ], botPass[37], channel[128];
-    struct Channel channelList[1024];//get numChnl from file
-    //struct Channel *channelList;
-    //channelList = (struct Channel*) malloc(numChnl * sizeof(struct Channel));
+    chnlL_t channelList;
     struct getMsg chatMsg;
     struct sendMsg botMsg;
     FILE* passFile;
     passFile = fopen("pass","r");
+    if(!passFile)
+    {
+        printf("IRC oauth file not found.\n");
+        return -1;
+    }
     fgets(botPass,37,passFile);
     fclose(passFile);
+    runningBots(&channelList);
+    srand(time(NULL));//seed rng with current time
     //TODO read in PID list
-    switch(daemon(0,0))
+    if(argc < 2)
     {
-        case -1:
-            printf("Daemonizing has failed\n");
-            break;
-        case 0:
-            if(argc < 2)
-            {
-                //TODO list currect channels with PIDs
-                printf("No channel name\n");
-                exit(0);
-            }
-            else if(argc > 2)
-            {
-                printf("Too many arguments\n");
-                exit(0);
-            }
-            else
-            {
+        //TODO list currect channels with PIDs
+        printf("No channel name\n");
+        return 0;
+    }
+    else if(argc > 2)
+    {
+        printf("Too many arguments\n");
+        return 0;
+    }
+    else
+    {
+        switch(daemon(0,0))
+        {
+            case -1:
+                printf("Daemonizing has failed\n");
+                break;
+            case 0:
                 strcpy(channel,argv[1]);
-                strcpy(channelList[0].name,argv[1]);
                 //TODO write new bot PID with channel to file
                 irc = twitchChatConnect();//the irc socket file descriptor
                 if(irc == -1)
@@ -52,10 +78,11 @@ int main(int argc, char *argv[])
                 }
                 botMsg.irc = irc;
                 strcpy(botMsg.channel,channel);
-            }
-            break;
-        default:
-            printf("You shouldn't have gotten here...\n");
+                break;
+            default:
+                printf("You shouldn't have gotten here...\n");
+                return -1;
+        }
     }
     while(1)
     {
@@ -80,6 +107,39 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+int runningBots(chnlL_t *CL)
+{
+    int numRunning = 0;
+    DIR* hoarebotPidDir;
+    struct dirent *currentItem;
+    hoarebotPidDir = opendir(PID_DIR);
+    if(hoarebotPidDir)
+    {
+        for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))
+        {
+            //TODO read pids into linked list
+            numRunning++;
+        }
+        closedir(hoarebotPidDir);
+        return numRunning;
+    }
+    else//make hoarebot pid directory and rerun function
+    {
+        mkdir(PID_DIR,700);
+        return runningBots(CL);
+    }
+}
+
+void populateLists()
+{
+    //TODO populate lists from files
+}
+
+void getMods()
+{
+    //TODO populate mod list use twitch api I guess
+}
+
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 {
     if(!strcmp(chatMsg->text,commands[0]))
@@ -97,6 +157,34 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     {
         slots(chatMsg->username, botMsg);
     }
+    else if(!strcmp(chatMsg->text,commands[2]))//!pasta
+    {
+        //TODO make list function to pick random item from list
+        chat(botMsg);
+    }
+    else if(!strcmp(chatMsg->text,commands[3]))//!modsPls
+    {
+        //TODO make list function to pick random item from list
+        chat(botMsg);
+    }
+    else if(!strcmp(chatMsg->text,commands[4]))//!raffle
+    {
+        raffle(chatMsg->username, botMsg);
+    }
+    else if(!strcmp(chatMsg->text, commands[5]))//!social
+    {
+        social(botMsg);
+    }
+    else if(!strcmp(chatMsg->text,commands[6]))//!healthy
+    {
+        //TODO make list function to pick random item from list
+        chat(botMsg);
+    }
+    else if(!strcmp(chatMsg->text,commands[7]))//!quote
+    {
+        //TODO make list function to pick random item from list
+        chat(botMsg);
+    }
     else
     {
         sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);
@@ -105,8 +193,93 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     botMsg->text[0] = '\0';//nullify the string for next message
 }
 
+void timeout(int seconds, char *username, struct sendMsg *botMsg)
+{
+    sprintf(botMsg->text,"/timeout %s %i",username,seconds);
+    chat(botMsg);
+}
+
 void slots(char *username, struct sendMsg *botMsg)
 {
-    sprintf(botMsg->text,"%s | %s | %s",emotes[rand() % 9],emotes[rand() % 9],emotes[rand() % 9]);
+    if((rand() % force) - 10 > WILL_FORCE_3)
+    {
+        force = rand() % 9;
+        sprintf(botMsg->text,"%s | %s | %s",emotes[force],emotes[force],emotes[force]);
+        force = 1;
+    }
+    else
+    {
+        sprintf(botMsg->text,"%s | %s | %s",emotes[rand() % 9],emotes[rand() % 9],emotes[rand() % 9]);
+        force++;
+    }
+    chat(botMsg);
+    if(!strcmp(botMsg->text,"Kappa | Kappa | Kappa"))
+    {
+        sprintf(botMsg->text,"Goodbye %s Kappa",username);
+        chat(botMsg);
+        timeout(0,username,botMsg);
+    }
+    else if(!strcmp(botMsg->text,"TriHard | TriHard | TriHard"))
+    {
+        int i, j;
+        int pos = 8;
+        char TH[10] = " TriHard ";
+        strcpy(botMsg->text,"TriHard ");
+        for(i = 0;i < strlen(username);i++)
+        {
+            if(username[i] >= 97)//if the chracter in the username isn't capitalized capitalize it
+            {
+                botMsg->text[pos] = username[i] - 32;
+            }
+            pos++;
+            for(j = 0;j < 9;j++)
+            {
+                botMsg->text[pos] = TH[j];
+                pos++;
+            }
+        }
+        botMsg->text[pos] = '\0';//terminate string with null character
+        strcat(botMsg->text,"TriHard H TriHard Y TriHard P TriHard E TriHard ! TriHard");
+        chat(botMsg);
+    }
+    else if(!strcmp(botMsg->text,"Kreygasm | Kreygasm | Kreygasm"))
+    {
+        sprintf(botMsg->text,"Kreygasm For later tonight %s https://www.youtube.com/watch?v=P-Vvm7M4Lig Kreygasm",username);
+        chat(botMsg);
+    }
+}
+
+void raffle(char *username, struct sendMsg *botMsg)
+{
+    //TODO check if user has entered already
+    sprintf(botMsg->text,"%s has entered the draw.",username);
+    chat(botMsg);
+    //TODO add item to raffleNames
+    numEntrants++;
+}
+
+void social(struct sendMsg *botMsg)
+{
+    char message[256];
+    if(socialSetVar & FACEBOOK_SET)
+    {
+        sprintf(message,"Like %s on facebook at %s ",streamerName,facebook);
+    }
+    strcat(botMsg->text,message);
+    if(socialSetVar & TWITTER_SET)
+    {
+        sprintf(message,"Follow %s on twitter at %s ",streamerName,twitter);
+    }
+    strcat(botMsg->text,message);
+    if(socialSetVar & YOUTUBE_SET)
+    {
+        sprintf(message,"Subscribe to %s on youtube at %s ",streamerName,youtube);
+    }
+    strcat(botMsg->text,message);
+    if(socialSetVar & MAL_SET)
+    {
+        sprintf(message,"Friend %s on MAL at %s ",streamerName,MAL);
+    }
+    strcat(botMsg->text,message);
     chat(botMsg);
 }
