@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     int size, irc;
     irc = 0;
     char raw[BUFSIZ], botPass[37], channel[128];
-    chnlL_t channelList;
+    //chnlL_t channelList;
     struct getMsg chatMsg;
     struct sendMsg botMsg;
     FILE* passFile;
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     }
     fgets(botPass,37,passFile);
     fclose(passFile);
-    runningBots(&channelList);
+    //runningBots(&channelList);
     srand(time(NULL));//seed rng with current time
     //TODO read in PID list
     if(argc < 2)
