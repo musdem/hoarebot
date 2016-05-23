@@ -231,6 +231,10 @@ void slots(char *username, struct sendMsg *botMsg)
             {
                 botMsg->text[pos] = username[i] - 32;
             }
+            else
+            {
+                botMsg->text[pos] = username[i];
+            }
             pos++;
             for(j = 0;j < 9;j++)
             {
