@@ -282,7 +282,7 @@ class HoareBot:
         lastPing = time.time()
         pingThreshold = 5 * 60 #5 mintues
         while 1:
-            raw = self.irc.recv(1024).decode('utf-8')
+            raw = self.irc.recv(2048).decode('utf-8')
             #if twitch pings the server we must ping back in order to keep the connection alive
             if raw.find('PING :') != -1:
                 self.irc.send('PONG :tim.twitch.tv\r\n'.encode('utf-8'))
