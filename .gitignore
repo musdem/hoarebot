@@ -1,4 +1,4 @@
 *.json
 keys.txt
 pass
-bin/
+bin
