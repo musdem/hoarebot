@@ -1,6 +1,6 @@
 #include "irc.h"
 
-int parseRaw(char *raw, struct getMsg *chatMsg)
+size_t parseRaw(char *raw, struct getMsg *chatMsg)
 {
     if(strstr(raw,"PRIVMSG") && !strstr(raw,"USERSTATE"))
     {
@@ -17,9 +17,9 @@ int parseRaw(char *raw, struct getMsg *chatMsg)
             chatMsg->text[rawPos - textOffset] = raw[rawPos];
         }
         chatMsg->text[rawPos - textOffset] = '\0';
-        return rawPos - textOffset - 1;//size of chatMsg.text
+        return (size_t) rawPos - textOffset - 1;//size of chatMsg.text
     }
-    else return 0;
+    else return (size_t) 0;
 }
 
 int twitchChatConnect()

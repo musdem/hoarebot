@@ -31,6 +31,6 @@ struct sendMsg
 int twitchChatConnect();
 int joinChannel(int irc, char *channel, char *botPass);
 int chat(struct sendMsg *botMsg);
-int parseRaw(char *raw, struct getMsg *chatMsg);
+size_t parseRaw(char *raw, struct getMsg *chatMsg);
 
 #endif
