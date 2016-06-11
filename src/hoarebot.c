@@ -170,9 +170,9 @@ void populateLists()
                     list->next->next = NULL;
                     list = list->next;
                 }
-            fclose(listFile);
-            curList++;
-            newItem = 1;
+                fclose(listFile);
+                curList++;
+                newItem = 1;
             }
         }
         closedir(hoarebotListDir);
