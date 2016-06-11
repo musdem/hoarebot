@@ -7,14 +7,8 @@ char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!ban","!u
 int force = 1;
 char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
 //list variables
-int numPasta = 0;
-list_t pastaList;
-int numModsPls = 0;
-list_t modsPlsList;
-int numHealthy = 0;
-list_t healthyList;
-int numQuote = 0;
-list_t quoteList;
+list_t *lists[NUM_LISTS];
+int numEntry[NUM_LISTS];
 //raffle variables
 int numEntrants = 0;
 re_t raffleNames;
@@ -59,6 +53,17 @@ int main(int argc, char *argv[])
     }
     else
     {
+        //I'll just remove this until later
+        //TODO have clean bot shutdown and clean up
+        /*if(!mkdir(channel,0700))//make directory for bot using channel and make it currect working directory
+        {
+            chdir(channel);
+        }
+        else
+        {
+            printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
+            return -1;
+        }*/
         switch(daemon(0,0))
         {
             case -1:
@@ -125,14 +130,58 @@ int runningBots(chnlL_t *CL)
     }
     else//make hoarebot pid directory and rerun function
     {
-        mkdir(PID_DIR,700);
+        mkdir(PID_DIR,0700);
         return runningBots(CL);
     }
 }
 
 void populateLists()
 {
-    //TODO populate lists from files
+    int curList = 0;
+    char line[BUFSIZ], newItem;
+    struct dirent *currentItem;
+    list_t *list;
+    DIR *hoarebotListDir;
+    FILE *listFile;
+    hoarebotListDir = opendir(LIST_DIR);
+    newItem = 1;
+    if(hoarebotListDir)
+    {
+        for(currentItem = readdir(hoarebotListDir);currentItem;currentItem = readdir(hoarebotListDir))
+        {
+            if(!strcmp("..",currentItem->d_name) || !strcmp(".",currentItem->d_name))//make sure that dir up and cur dir aren't considered a list
+            {
+                listFile = fopen(currentItem->d_name,"r");
+                lists[curList] = malloc(sizeof(list_t));
+                list = lists[curList];
+                while(fgets(line,BUFSIZ,listFile))//read until the end of the file these should have no empty lines
+                {
+                    if(newItem)
+                    {
+                        strcpy(list->type,currentItem->d_name);
+                        newItem = 0;
+                    }
+                    else
+                    {
+                        strcpy(list->item,currentItem->d_name);
+                        numEntry[curList]++;
+                    }
+                    list->next = malloc(sizeof(list_t));
+                    list->next->next = NULL;
+                    list = list->next;
+                }
+            fclose(listFile);
+            curList++;
+            newItem = 1;
+            }
+        }
+        closedir(hoarebotListDir);
+    }
+    else
+    {
+        mkdir(LIST_DIR,0700);
+        populateLists();
+    }
 }
 
 void getMods()

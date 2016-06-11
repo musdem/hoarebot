@@ -7,7 +7,9 @@
 
 #define NUM_CMD 8
 #define NUM_MOD_CMD 11
-#define PID_DIR "/run/hoarebot"
+#define NUM_LISTS 4
+#define PID_DIR "./run"
+#define LIST_DIR "./lists"
 
 #define WILL_FORCE_3 20
 
