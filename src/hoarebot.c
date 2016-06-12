@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     //chnlL_t channelList;
     struct getMsg chatMsg;
     struct sendMsg botMsg;
-    FILE* passFile;
+    FILE *passFile;
     passFile = fopen("pass","r");
     if(!passFile)
     {
@@ -115,14 +115,28 @@ int main(int argc, char *argv[])
 int runningBots(chnlL_t *CL)
 {
     int numRunning = 0;
-    DIR* hoarebotPidDir;
+    char pidStr[64];
+    chnlL_t *current;
+    DIR *hoarebotPidDir;
+    FILE *pidFile;
     struct dirent *currentItem;
     hoarebotPidDir = opendir(PID_DIR);
     if(hoarebotPidDir)
     {
+        current = CL;
+        current = malloc(sizeof(chnlL_t));
         for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))
         {
-            //TODO read pids into linked list
+            if(!strcmp("..",currentItem->d_name) || !strcmp(".",currentItem->d_name))//make sure that dir up and cur dir aren't considered a pid
+            {
+                pidFile = fopen(currentItem->d_name,"r");
+                fgets(pidStr,64,pidFile);
+                current->PID = (pid_t) atoi(pidStr);
+                strcpy(current->name,currentItem->d_name);
+                current->next = malloc(sizeof(chnlL_t));
+                current->next->next = NULL;
+                current = current->next;
+            }
             numRunning++;
         }
         closedir(hoarebotPidDir);
@@ -140,7 +154,7 @@ void populateLists()
     int curList = 0;
     char line[BUFSIZ], newItem;
     struct dirent *currentItem;
-    list_t *list;
+    list_t *current;
     DIR *hoarebotListDir;
     FILE *listFile;
     hoarebotListDir = opendir(LIST_DIR);
@@ -153,22 +167,22 @@ void populateLists()
             {
                 listFile = fopen(currentItem->d_name,"r");
                 lists[curList] = malloc(sizeof(list_t));
-                list = lists[curList];
+                current = lists[curList];
                 while(fgets(line,BUFSIZ,listFile))//read until the end of the file these should have no empty lines
                 {
                     if(newItem)
                     {
-                        strcpy(list->type,currentItem->d_name);
+                        strcpy(current->type,currentItem->d_name);
                         newItem = 0;
                     }
                     else
                     {
-                        strcpy(list->item,currentItem->d_name);
+                        strcpy(current->item,currentItem->d_name);
                         numEntry[curList]++;
                     }
-                    list->next = malloc(sizeof(list_t));
-                    list->next->next = NULL;
-                    list = list->next;
+                    current->next = malloc(sizeof(list_t));
+                    current->next->next = NULL;
+                    current = current->next;
                 }
                 fclose(listFile);
                 curList++;
