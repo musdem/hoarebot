@@ -6,9 +6,6 @@ char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!ban","!u
 //slots variables
 int force = 1;
 char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
-//list variables
-list_t *lists[NUM_LISTS];
-int numEntry[NUM_LISTS];
 //raffle variables
 int numEntrants = 0;
 re_t raffleNames;
@@ -24,7 +21,7 @@ int main(int argc, char *argv[])
 {
     int size, irc;
     irc = 0;
-    char raw[BUFSIZ], botPass[37], channel[128];
+    char raw[BUFSIZ], botPass[37], channel[128], running;
     //chnlL_t channelList;
     struct getMsg chatMsg;
     struct sendMsg botMsg;
@@ -89,7 +86,8 @@ int main(int argc, char *argv[])
                 return -1;
         }
     }
-    while(1)
+    running = 1;
+    while(running)
     {
         size = read(irc,raw,BUFSIZ);
         if(strstr(raw,"PING :"))
@@ -149,60 +147,12 @@ int runningBots(chnlL_t *CL)
     }
 }
 
-void populateLists()
-{
-    int curList = 0;
-    char line[BUFSIZ], newItem;
-    struct dirent *currentItem;
-    list_t *current;
-    DIR *hoarebotListDir;
-    FILE *listFile;
-    hoarebotListDir = opendir(LIST_DIR);
-    newItem = 1;
-    if(hoarebotListDir)
-    {
-        for(currentItem = readdir(hoarebotListDir);currentItem;currentItem = readdir(hoarebotListDir))
-        {
-            if(!strcmp("..",currentItem->d_name) || !strcmp(".",currentItem->d_name))//make sure that dir up and cur dir aren't considered a list
-            {
-                listFile = fopen(currentItem->d_name,"r");
-                lists[curList] = malloc(sizeof(list_t));
-                current = lists[curList];
-                while(fgets(line,BUFSIZ,listFile))//read until the end of the file these should have no empty lines
-                {
-                    if(newItem)
-                    {
-                        strcpy(current->type,currentItem->d_name);
-                        newItem = 0;
-                    }
-                    else
-                    {
-                        strcpy(current->item,currentItem->d_name);
-                        numEntry[curList]++;
-                    }
-                    current->next = malloc(sizeof(list_t));
-                    current->next->next = NULL;
-                    current = current->next;
-                }
-                fclose(listFile);
-                curList++;
-                newItem = 1;
-            }
-        }
-        closedir(hoarebotListDir);
-    }
-    else
-    {
-        mkdir(LIST_DIR,0700);
-        populateLists();
-    }
-}
-
 void getMods()
 {
     //TODO populate mod list use twitch api I guess
 }
 
+//maybe I should make a command type with the command and the rest of the text
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 {
     if(!strcmp(chatMsg->text,commands[0]))

@@ -2,14 +2,11 @@
 #define HOAREBOT_H
 
 #include <time.h>
-#include <dirent.h>
-#include "irc.h"
+#include "lists.h"
 
 #define NUM_CMD 8
 #define NUM_MOD_CMD 11
-#define NUM_LISTS 4
 #define PID_DIR "./run"
-#define LIST_DIR "./lists"
 
 #define WILL_FORCE_3 20
 
@@ -24,13 +21,6 @@ typedef struct Channel
     char name[128];
     struct Channel *next;
 }chnlL_t;
-
-typedef struct List
-{
-    char type[32];
-    char item[BUFSIZ];
-    struct List *next;
-}list_t;
 
 typedef struct RaffleEntrys
 {
