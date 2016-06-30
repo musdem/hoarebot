@@ -121,8 +121,8 @@ int runningBots(chnlL_t *CL)
     hoarebotPidDir = opendir(PID_DIR);
     if(hoarebotPidDir)
     {
+        CL = malloc(sizeof(chnlL_t));
         current = CL;
-        current = malloc(sizeof(chnlL_t));
         for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))
         {
             if(!strcmp("..",currentItem->d_name) || !strcmp(".",currentItem->d_name))//make sure that dir up and cur dir aren't considered a pid
