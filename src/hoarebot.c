@@ -172,12 +172,12 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     }
     else if(!strcmp(chatMsg->text,commands[2]))//!pasta
     {
-        //TODO make list function to pick random item from list
+        getRandomItem(0);
         chat(botMsg);
     }
     else if(!strcmp(chatMsg->text,commands[3]))//!modsPls
     {
-        //TODO make list function to pick random item from list
+        getRandomItem(3);
         chat(botMsg);
     }
     else if(!strcmp(chatMsg->text,commands[4]))//!raffle
@@ -190,12 +190,12 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     }
     else if(!strcmp(chatMsg->text,commands[6]))//!healthy
     {
-        //TODO make list function to pick random item from list
+        getRandomItem(1);
         chat(botMsg);
     }
     else if(!strcmp(chatMsg->text,commands[7]))//!quote
     {
-        //TODO make list function to pick random item from list
+        getRandomItem(2);
         chat(botMsg);
     }
     else

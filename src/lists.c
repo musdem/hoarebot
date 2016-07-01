@@ -22,6 +22,7 @@ void populateLists()
                 listFile = fopen(currentItem->d_name,"r");
                 lists[curList] = malloc(sizeof(list_t));
                 current = lists[curList];
+                numEntry[curList] = 0;
                 while(fgets(line,BUFSIZ,listFile))//read until the end of the file these should have no empty lines
                 {
                     if(newItem)
@@ -31,12 +32,12 @@ void populateLists()
                     }
                     else
                     {
-                        strcpy(current->item,currentItem->d_name);
+                        current->next = malloc(sizeof(list_t));
+                        strcpy(current->next->item,currentItem->d_name);
                         numEntry[curList]++;
+                        current->next->next = NULL;
+                        current = current->next;
                     }
-                    current->next = malloc(sizeof(list_t));
-                    current->next->next = NULL;
-                    current = current->next;
                 }
                 fclose(listFile);
                 curList++;
@@ -52,33 +53,109 @@ void populateLists()
     }
 }
 
-int itemInList(char *listItem)
+int itemInList(char *listItem, int listType)
 {
-    //TODO iterate over list and make sure item isn't in it
-    return 0;
+    list_t *CL;
+    CL = lists[listType];
+    while(CL)//iterate over the list until the item is found then return 1
+    {
+        if(!strcmp(listItem,CL->item))
+        {
+            return 1;
+        }
+        CL = CL->next;
+    }
+    return 0;//if nothing is found then return 0
 }
 
-void addItem(char *listItem)
+void addItem(char *listItem, int listType)
 {
-    //TODO add item to end of the list
+    list_t *CL;
+    CL = lists[listType];
+    numEntry[listType]++;
+    while(CL->next)//iterate over list until the next item is NULL
+    {
+        CL = CL->next;
+    }
+    CL->next = malloc(sizeof(list_t));
+    strcpy(CL->next->item,listItem);
+    CL->next->next = NULL;
 }
 
-void removeItem(char *listItem)
+int removeItem(char *listItem, int listType)
 {
-    //TODO remove item from where ever it is
+    list_t *CL, *temp;
+    CL = lists[listType];
+    if(!strcmp(listItem,CL->item))//if the first item is the item to remove
+    {
+        temp = CL->next;
+        free(CL);
+        CL = temp;
+        numEntry[listType]--;
+        return 1;
+    }
+    while(CL)
+    {
+        if(!strcmp(listItem,CL->next->item))
+        {
+            if(CL->next->next == NULL)//if the last item in the list is the item to remove
+            {
+                free(CL->next);
+                CL->next = NULL;
+            }
+            else//item in the middle of the list
+            {
+                temp = CL->next;
+                CL->next = temp->next;
+                free(temp);
+            }
+            numEntry[listType]--;
+            return 1;
+        }
+        CL = CL->next;
+    }
+    return 0;//return -1 if item isn't in the list
+}
+
+char *getRandomItem(int listType)
+{
+    int i, item;
+    list_t *CL;
+    item = rand() % numEntry[listType];
+    CL = lists[listType];
+    for(i = 0;i < item;i++)
+    {
+        CL = CL->next;
+    }
+    return CL->item;
 }
 
 void updateList(char *listItem, int listType, char mode, struct sendMsg *botMsg)
 {
     if(mode == 'w')
     {
-        if(!itemInList(listItem))
+        if(!itemInList(listItem,listType))
         {
-            addItem(listItem);
+            addItem(listItem,listType);
+            strcpy(botMsg->text,"Added item from the list.");
+            chat(botMsg);
         }
         else
         {
             strcpy(botMsg->text,"That is already in the list FailFish");
+            chat(botMsg);
+        }
+    }
+    else if(mode == 'd')
+    {
+        if(removeItem(listItem,listType))
+        {
+            strcpy(botMsg->text,"Removed item from the list.");
+            chat(botMsg);
+        }
+        else
+        {
+            strcpy(botMsg->text,"That item isn't in the list FailFish");
             chat(botMsg);
         }
     }
