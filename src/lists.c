@@ -17,7 +17,7 @@ void populateLists()
     {
         for(currentItem = readdir(hoarebotListDir);currentItem;currentItem = readdir(hoarebotListDir))
         {
-            if(!strcmp("..",currentItem->d_name) || !strcmp(".",currentItem->d_name))//make sure that dir up and cur dir aren't considered a list
+            if(strcmp("..",currentItem->d_name) != 0 && strcmp(".",currentItem->d_name) != 0)//make sure that dir up and cur dir aren't considered a list
             {
                 listFile = fopen(currentItem->d_name,"r");
                 lists[curList] = malloc(sizeof(list_t));

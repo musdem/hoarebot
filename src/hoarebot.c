@@ -19,10 +19,10 @@ char *MAL;
 
 int main(int argc, char *argv[])
 {
-    int size, irc;
+    int size, irc, numRunning;
     irc = 0;
     char raw[BUFSIZ], botPass[37], channel[128], running;
-    //chnlL_t channelList;
+    chnlL_t channelList, *current;
     struct getMsg chatMsg;
     struct sendMsg botMsg;
     FILE *passFile;
@@ -34,13 +34,24 @@ int main(int argc, char *argv[])
     }
     fgets(botPass,37,passFile);
     fclose(passFile);
-    //runningBots(&channelList);
+    numRunning = runningBots(&channelList);
     srand(time(NULL));//seed rng with current time
-    //TODO read in PID list
     if(argc < 2)
     {
-        //TODO list currect channels with PIDs
-        printf("No channel name\n");
+        if(numRunning)
+        {
+            current = &channelList;
+            printf("Current bots running\n");
+            while(current != NULL)
+            {
+                printf("%s\n",current->name);
+                current = current->next;
+            }
+        }
+        else
+        {
+            printf("No bots are currently running.\n");
+        }
         return 0;
     }
     else if(argc > 2)
@@ -121,21 +132,22 @@ int runningBots(chnlL_t *CL)
     hoarebotPidDir = opendir(PID_DIR);
     if(hoarebotPidDir)
     {
-        CL = malloc(sizeof(chnlL_t));
+        chdir(PID_DIR);
         current = CL;
         for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))
         {
-            if(!strcmp("..",currentItem->d_name) || !strcmp(".",currentItem->d_name))//make sure that dir up and cur dir aren't considered a pid
+            if(strcmp("..",currentItem->d_name) != 0 && strcmp(".",currentItem->d_name) != 0)//make sure that dir up and cur dir aren't considered a pid
             {
+                current->next = malloc(sizeof(chnlL_t));
+                current->next->next = NULL;
                 pidFile = fopen(currentItem->d_name,"r");
                 fgets(pidStr,64,pidFile);
                 current->PID = (pid_t) atoi(pidStr);
                 strcpy(current->name,currentItem->d_name);
-                current->next = malloc(sizeof(chnlL_t));
-                current->next->next = NULL;
+                printf("PID: %i\nChannel: %s\n",(int) current->PID,current->name);
                 current = current->next;
+                numRunning++;
             }
-            numRunning++;
         }
         closedir(hoarebotPidDir);
         return numRunning;
@@ -147,9 +159,11 @@ int runningBots(chnlL_t *CL)
     }
 }
 
-void getMods()
+void getMods(struct sendMsg *botMsg)
 {
-    //TODO populate mod list use twitch api I guess
+    //TODO populate mod list using /mods and lists.c
+    //get raw and jump to mod lists then add mods to lists using lists.c and never save
+    //the mod list will always be the last item in the list_t array (NUM_LISTS - 1)
 }
 
 //maybe I should make a command type with the command and the rest of the text
