@@ -41,10 +41,10 @@ int main(int argc, char *argv[])
         if(numRunning)
         {
             current = &channelList;
-            printf("Current bots running\n");
-            while(current != NULL)
+            printf("Current bots running: %i\n",numRunning);
+            while(current->next != NULL)
             {
-                printf("%s\n",current->name);
+                printf("Channel: %s\nPID: %i\n", current->name, (int) current->PID);
                 current = current->next;
             }
         }
@@ -138,18 +138,22 @@ int runningBots(chnlL_t *CL)
         {
             if(strcmp("..",currentItem->d_name) != 0 && strcmp(".",currentItem->d_name) != 0)//make sure that dir up and cur dir aren't considered a pid
             {
-                current->next = malloc(sizeof(chnlL_t));
-                current->next->next = NULL;
                 pidFile = fopen(currentItem->d_name,"r");
                 fgets(pidStr,64,pidFile);
                 current->PID = (pid_t) atoi(pidStr);
                 strcpy(current->name,currentItem->d_name);
-                printf("PID: %i\nChannel: %s\n",(int) current->PID,current->name);
+                current->next = malloc(sizeof(chnlL_t));
+                current->next->next = NULL;
                 current = current->next;
                 numRunning++;
             }
         }
         closedir(hoarebotPidDir);
+        if(current->next != NULL)//make sure this doesn't try to free something that isn't there
+        {
+            free(current);
+            current = NULL;
+        }
         return numRunning;
     }
     else//make hoarebot pid directory and rerun function
@@ -218,6 +222,21 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
         chat(botMsg);
     }
     botMsg->text[0] = '\0';//nullify the string for next message
+}
+
+int argPos(char *cmd, int argNum)
+{
+    int cmdArgPos = 0;
+    while(argNum != 0)
+    {
+        cmdArgPos++;
+        if(cmd[cmdArgPos] != ' ') argNum--;//if an argument is found decrement
+        else if(cmd[cmdArgPos] == '\0')//if the end of cmd is reached and there wasn't the correct number of requested arguments
+        {
+            return -1;
+        }
+    }
+    return cmdArgPos + 1;//the start of the selected command argument
 }
 
 void timeout(int seconds, char *username, struct sendMsg *botMsg)
