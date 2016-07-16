@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     fclose(passFile);
     numRunning = runningBots(&channelList);
     srand(time(NULL));//seed rng with current time
-    if(argc < 2)
+    if(argc < 2)//no arguments were added to the command so list running bots
     {
         if(numRunning)
         {
@@ -54,12 +54,12 @@ int main(int argc, char *argv[])
         }
         return 0;
     }
-    else if(argc > 2)
+    else if(argc > 2)//too many arguments were provided
     {
         printf("Too many arguments\n");
         return 0;
     }
-    else
+    else//argument provided this should be a channel to join
     {
         //I'll just remove this until later
         //TODO have clean bot shutdown and clean up
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
     while(running)
     {
         size = read(irc,raw,BUFSIZ);
-        if(strstr(raw,"PING :"))
+        if(strstr(raw,"PING :"))//make sure the bot stays connected
         {
             size = sprintf(raw,"PONG :tmi.twitch.tv\r\n");
             if(write(irc,raw,size) == -1)
@@ -130,11 +130,11 @@ int runningBots(chnlL_t *CL)
     FILE *pidFile;
     struct dirent *currentItem;
     hoarebotPidDir = opendir(PID_DIR);
-    if(hoarebotPidDir)
+    if(hoarebotPidDir)//dir exists so read in running channels
     {
         chdir(PID_DIR);
         current = CL;
-        for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))
+        for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))//go over every item in run dir
         {
             if(strcmp("..",currentItem->d_name) != 0 && strcmp(".",currentItem->d_name) != 0)//make sure that dir up and cur dir aren't considered a pid
             {
@@ -230,7 +230,7 @@ int argPos(char *cmd, int argNum)
     while(argNum != 0)
     {
         cmdArgPos++;
-        if(cmd[cmdArgPos] != ' ') argNum--;//if an argument is found decrement
+        if(cmd[cmdArgPos] == ' ') argNum--;//if an argument is found decrement
         else if(cmd[cmdArgPos] == '\0')//if the end of cmd is reached and there wasn't the correct number of requested arguments
         {
             return -1;
@@ -247,7 +247,7 @@ void timeout(int seconds, char *username, struct sendMsg *botMsg)
 
 void slots(char *username, struct sendMsg *botMsg)
 {
-    if((rand() % force) - 10 > WILL_FORCE_3)
+    if((rand() % force) - 10 > WILL_FORCE_3)//crappy PRNG
     {
         force = rand() % 9;
         sprintf(botMsg->text,"%s | %s | %s",emotes[force],emotes[force],emotes[force]);
@@ -277,7 +277,7 @@ void slots(char *username, struct sendMsg *botMsg)
             {
                 botMsg->text[pos] = username[i] - 32;
             }
-            else
+            else//if the character is anything else
             {
                 botMsg->text[pos] = username[i];
             }
