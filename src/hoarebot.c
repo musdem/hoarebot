@@ -231,10 +231,7 @@ int argPos(char *cmd, int argNum)
     {
         cmdArgPos++;
         if(cmd[cmdArgPos] == ' ') argNum--;//if an argument is found decrement
-        else if(cmd[cmdArgPos] == '\0')//if the end of cmd is reached and there wasn't the correct number of requested arguments
-        {
-            return -1;
-        }
+        else if(cmd[cmdArgPos] == '\0') return -1;//if the end of cmd is reached and there wasn't the correct number of requested arguments
     }
     return cmdArgPos + 1;//the start of the selected command argument
 }
