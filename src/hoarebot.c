@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
         {
             case -1:
                 printf("Daemonizing has failed\n");
-                break;
+                return -1;
             case 0:
                 strcpy(channel,argv[1]);
                 //TODO write new bot PID with channel to file
