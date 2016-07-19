@@ -1,4 +1,5 @@
 #include "lists.h"
+
 //list variables
 list_t *lists[NUM_LISTS];
 int numEntry[NUM_LISTS];
@@ -130,9 +131,17 @@ char *getRandomItem(int listType)
     return CL->item;
 }
 
-void updateList(char *listItem, int listType, char mode, struct sendMsg *botMsg)
+void updateList(char *rawCmd, int listType, char mode, struct sendMsg *botMsg)
 {
-    if(mode == 'w')
+    int i, j;
+	j = 0;
+	char listItem[BUFSIZ];
+	for(i = argPost(rawCmd);rawCmd[i] != '\0';i++)//get list item from rawCmd
+	{
+		listItem[j] = rawCmd[i];
+		j++;
+	}
+	if(mode == 'w')
     {
         if(!itemInList(listItem,listType))
         {

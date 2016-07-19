@@ -19,6 +19,6 @@ int itemInList(char *listItem, int listType);
 void addItem(char *listItem, int listType);
 int removeItem(char *listItem, int listType);
 char *getRandomItem(int listType);
-void updateList(char *listItem, int listType, char mode, struct sendMsg *botMsg);
+void updateList(char *rawCmd, int listType, char mode, struct sendMsg *botMsg);
 
 #endif

@@ -28,8 +28,20 @@ typedef struct RaffleEntrys
     struct RaffleEntrys *next;
 }re_t;
 
+typedef struct ModList
+{
+	char mod[128];
+	struct ModList *next;
+}ml_t;
+
 int runningBots(chnlL_t *CL);
+void getMods(struct sendMsg *botMsg);
+int isMod(char *username);
+int inSC(char *cmd);
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg);
+int argPos(char *cmd, int argNum);
+void timeout(int seconds, char *username, struct sendMsg *botMsg);
+void ban(char *username, struct sendMsg *botMsg);
 void slots(char *username, struct sendMsg *botMsg);
 void raffle(char *username, struct sendMsg *botMsg);
 void social(struct sendMsg *botMsg);

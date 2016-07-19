@@ -7,8 +7,11 @@ char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!ban","!u
 int force = 1;
 char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
 //raffle variables
+int raffleStaus = 0;
 int numEntrants = 0;
 re_t raffleNames;
+//list of mods
+ml_t *mods;
 //social variables
 char socialSetVar = 0;
 char *streamerName;
@@ -19,9 +22,9 @@ char *MAL;
 
 int main(int argc, char *argv[])
 {
-    int size, irc, numRunning;
-    irc = 0;
-    char raw[BUFSIZ], botPass[37], channel[128], running;
+    int size, numRunning;
+    botMsg.irc = 0;
+    char raw[BUFSIZ], botPass[37], running;
     chnlL_t channelList, *current;
     struct getMsg chatMsg;
     struct sendMsg botMsg;
@@ -63,6 +66,7 @@ int main(int argc, char *argv[])
     {
         //I'll just remove this until later
         //TODO have clean bot shutdown and clean up
+		//make a channels directory for all channel data
         /*if(!mkdir(channel,0700))//make directory for bot using channel and make it currect working directory
         {
             chdir(channel);
@@ -78,19 +82,27 @@ int main(int argc, char *argv[])
                 printf("Daemonizing has failed\n");
                 return -1;
             case 0:
-                strcpy(channel,argv[1]);
-                //TODO write new bot PID with channel to file
-                irc = twitchChatConnect();//the irc socket file descriptor
-                if(irc == -1)
+                strcpy(botMsg.channel,argv[1]);
+				//create PID file for new bot
+				chdir(PID_DIR);
+				FILE *newPID;
+				fopen(botMsg.channel,"a");
+				sprintf(raw,"%i",(int) getpid());//borrow raw to not use extra memory
+				if(fputs(raw,newPID) == -1)
+				{
+					printf("Failed to make a PID file.\n");
+				}
+				chdir("..");//leave PID_DIR
+                botMsg.irc = twitchChatConnect();//the irc socket file descriptor
+                if(botMsg.irc == -1)
                 {
                     printf("Couldn't connect to twitch servers.\n");
+					return -1;
                 }
-                if(joinChannel(irc, channel, botPass) == -1)
+                if(joinChannel(botMsg.irc, botMsg.channel, botPass) == -1)
                 {
                     printf("Couldn't join the channel\n");
                 }
-                botMsg.irc = irc;
-                strcpy(botMsg.channel,channel);
                 break;
             default:
                 printf("You shouldn't have gotten here...\n");
@@ -100,11 +112,11 @@ int main(int argc, char *argv[])
     running = 1;
     while(running)
     {
-        size = read(irc,raw,BUFSIZ);
+        size = read(botMsg.irc,raw,BUFSIZ);
         if(strstr(raw,"PING :"))//make sure the bot stays connected
         {
             size = sprintf(raw,"PONG :tmi.twitch.tv\r\n");
-            if(write(irc,raw,size) == -1)
+            if(write(botMsg.irc,raw,size) == -1)
             {
                 printf("couldn't write PING back server: %i\n",errno);
                 return -1;
@@ -165,18 +177,45 @@ int runningBots(chnlL_t *CL)
 
 void getMods(struct sendMsg *botMsg)
 {
-    //TODO populate mod list using /mods and lists.c
+    //TODO populate mod list using /mods and ml_t mods
     //get raw and jump to mod lists then add mods to lists using lists.c and never save
-    //the mod list will always be the last item in the list_t array (NUM_LISTS - 1)
+}
+
+int isMod(char *username)
+{
+	ml_t *current;
+	current = mods;
+	while(current->next)
+	{
+		if(!strcmp(current->mod,username))
+		{
+			return 1;
+		}
+		current = current->next;
+	}
+	return 0;
+}
+
+int inSC(char *cmd)
+{
+	int i;
+	for(i = 0;i < NUM_MOD_CMD;i++)
+	{
+		if(!strstr(cmd,secretCommands[i]))
+		{
+			return 1;
+		}
+	}
+	return 0;
 }
 
 //maybe I should make a command type with the command and the rest of the text
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 {
-    if(!strcmp(chatMsg->text,commands[0]))
+    if(!strcmp(chatMsg->text,commands[0]))//!commands
     {
         int i;
-        for(i = 0;i < NUM_CMD - 1;i++)//!commands
+        for(i = 0;i < NUM_CMD - 1;i++)
         {
             strcat(botMsg->text,commands[i]);
             strcat(botMsg->text,", ");
@@ -216,7 +255,96 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
         getRandomItem(2);
         chat(botMsg);
     }
-    else
+	else if(inSC(chatMsg->text))
+	{
+		if(isMod(chatMsg->username))//check for mod status
+		{
+			if(strstr(chatMsg->text,secretCommands[0]))//!modcommands
+			{
+				int i;
+				for(i = 0;i < NUM_CMD - 1;i++)
+				{
+					strcat(botMsg->text,secretCommands[i]);
+					strcat(botMsg->text,", ");
+				}
+				strcat(botMsg->text,secretCommands[i]);
+				chat(botMsg);
+			}
+			else if(strstr(chatMsg->text,secretCommands[1]))//!refreshmods
+			{
+				getMods(botMsg);
+			}
+			else if(strstr(chatMsg->text,secretCommands[2]))//!ban
+			{
+				int i, j;
+				j = 0;
+				char username[128];
+				for(i = argPos(chatMsg->text);chatMsg->text[i] != '\0';i++)
+				{
+					username[j] = chatMsg->text[i];
+					j++;
+				}
+				ban(username,botMsg);
+			}
+			else if(strstr(chatMsg->text,secretCommands[3]))//!updatepasta
+			{
+				updateList(chatMsg->text,0,'w',botMsg);
+			}
+			else if(strstr(chatMsg->text,secretCommands[4]))//!removepasta
+			{
+				updateList(chatMsg->text,0,'d',botMsg);
+			}
+			else if(strstr(chatMsg->text,secretCommands[5]))//!toggleraffle
+			{
+				if(raffleStatus)
+				{
+					raffleStatus = 0;
+					strcpy(botMsg->text,"Raffle closed.");
+					chat(botMsg);
+				}
+				else
+				{
+					raffleStatus = 1;
+					strcpy(botMsg->text,"Raffle open!");
+					chat(botMsg);
+				}
+			}
+			else if(strstr(chatMsg->text,secretCommands[6]))//!raffledraw
+			{
+				if(!raffleStatus)
+				{
+					drawRaffle(botMsg);
+				}
+				else
+				{
+					strcpy(botMsg->text,"The raffle is still on! FailFish");
+					chat(botMsg);
+				}
+			}
+			else if(strstr(chatMsg->text,secretCommands[7]))//!updatehealthy
+			{
+				updateList(chatMsg->text,1,'w',botMsg);
+			}
+			else if(strstr(chatMsg->text,secretCommands[8]))//!removehealthy
+			{
+				updateList(chatMsg->text,1,'d',botMsg);
+			}
+			else if(strstr(chatMsg->text,secretCommands[9]))//!updatequote
+			{
+				updateList(chatMsg->text,2,'w',botMsg);
+			}
+			else if(strstr(chatMsg->text,secretCommands[10]))//!removequote
+			{
+				updateList(chatMsg->text,2,'d',botMsg);
+			}
+		}
+		else//non mod trying to use mod cmd
+		{
+			strcpy(botMsg->text,"You aren't a mod! DansGame");
+			chat(botMsg);
+		}
+	}
+    else//command isn't real
     {
         sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);
         chat(botMsg);
@@ -240,6 +368,14 @@ void timeout(int seconds, char *username, struct sendMsg *botMsg)
 {
     sprintf(botMsg->text,"/timeout %s %i",username,seconds);
     chat(botMsg);
+}
+
+void ban(char *username, struct sendMsg *botMsg)
+{
+	strcpy(botMsg->text,"¦¦¦¦¦¦¦¦¦¦¦¦ _¦¦¦¦_¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦ ¦¦¦¦¦¦_¦¦¦¦¦¦___¦¦¦¦¦¦¦¦¦¦ ¦¦¦¦¯¯¯___¯¯¯¦¦¦¦¦¦¦¦¦¦¦¦¦ ¦¦¦_¯¯¯_¦¦¦¦¯¯_¦_¯¯_¦¦_¦¦¦ ¦¦¦__¦¦¦¦¦¦¦¯¯_¦¦__¦¦¦¯_¦¦ ¦¦¦¦¦¦¦¦¦¦¦¦__¯¦¦¦¦¦¦¦¦¯¦¦ ¦¦¦¦¦¯¯¯¯¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦");
+	chat(botMsg);
+	sprintf(botMsg->text,"/ban %s",username);
+	chat(botMsg);
 }
 
 void slots(char *username, struct sendMsg *botMsg)
@@ -303,6 +439,12 @@ void raffle(char *username, struct sendMsg *botMsg)
     chat(botMsg);
     //TODO add item to raffleNames
     numEntrants++;
+}
+
+void drawRaffle(struct sendMsg *botMsg)
+{
+	//TOOD get random list entry
+	//should tweak lists.c to let other things use it's functions
 }
 
 void social(struct sendMsg *botMsg)
