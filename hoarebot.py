@@ -222,7 +222,7 @@ class HoareBot:
             self.chat('Are you fucking happy Trevor?')
         elif(cmd[1].split(' ')[0].lower() in self.secretcommands):#mod commands
             if(cmd[0] in self.modslist):
-                if(cmd[1].lower() == self.secretcommands[0]):#lsits mod commands
+                if(cmd[1].lower() == self.secretcommands[0]):#lists mod commands
                     cmd[1] = ''
                     for i in range(0,len(self.secretcommands) - 1):
                         cmd[1] += self.secretcommands[i][1:] + ', '
