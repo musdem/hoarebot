@@ -18,6 +18,7 @@ void populateLists();
 int itemInList(char *listItem, int listType);
 void addItem(char *listItem, int listType);
 int removeItem(char *listItem, int listType);
+int argPos(char *cmd, int argNum);
 char *getRandomItem(int listType);
 void updateList(char *rawCmd, int listType, char mode, struct sendMsg *botMsg);
 

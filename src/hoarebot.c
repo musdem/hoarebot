@@ -352,18 +352,6 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     botMsg->text[0] = '\0';//nullify the string for next message
 }
 
-int argPos(char *cmd, int argNum)
-{
-    int cmdArgPos = 0;
-    while(argNum != 0)
-    {
-        cmdArgPos++;
-        if(cmd[cmdArgPos] == ' ') argNum--;//if an argument is found decrement
-        else if(cmd[cmdArgPos] == '\0') return -1;//if end of cmd is reached
-    }
-    return cmdArgPos + 1;//the start of the selected command argument
-}
-
 void timeout(int seconds, char *username, struct sendMsg *botMsg)
 {
     sprintf(botMsg->text,"/timeout %s %i",username,seconds);
@@ -372,7 +360,7 @@ void timeout(int seconds, char *username, struct sendMsg *botMsg)
 
 void ban(char *username, struct sendMsg *botMsg)
 {
-	strcpy(botMsg->text,"¦¦¦¦¦¦¦¦¦¦¦¦ _¦¦¦¦_¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦ ¦¦¦¦¦¦_¦¦¦¦¦¦___¦¦¦¦¦¦¦¦¦¦ ¦¦¦¦¯¯¯___¯¯¯¦¦¦¦¦¦¦¦¦¦¦¦¦ ¦¦¦_¯¯¯_¦¦¦¦¯¯_¦_¯¯_¦¦_¦¦¦ ¦¦¦__¦¦¦¦¦¦¦¯¯_¦¦__¦¦¦¯_¦¦ ¦¦¦¦¦¦¦¦¦¦¦¦__¯¦¦¦¦¦¦¦¦¯¦¦ ¦¦¦¦¦¯¯¯¯¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦¦");
+	strcpy(botMsg->text,"â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘ â–„â–ˆâ–ˆâ–ˆâ–ˆâ–„â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘ â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–„â–‘â–‘â–‘â–‘â–‘â–‘â–„â–„â–„â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘ â–‘â–ˆâ–ˆâ–ˆâ–€â–€â–€â–„â–„â–„â–€â–€â–€â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘ â–‘â–‘â–‘â–„â–€â–€â–€â–„â–‘â–‘â–‘â–ˆâ–€â–€â–„â–‘â–„â–€â–€â–„â–‘â–ˆâ–„â–‘â–ˆâ–‘ â–‘â–‘â–‘â–„â–„â–ˆâ–ˆâ–ˆâ–ˆâ–‘â–‘â–ˆâ–€â–€â–„â–‘â–ˆâ–„â–„â–ˆâ–‘â–ˆâ–€â–„â–ˆâ–‘ â–‘â–‘â–‘â–‘â–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–ˆâ–‘â–ˆâ–„â–„â–€â–‘â–ˆâ–‘â–‘â–ˆâ–‘â–ˆâ–‘â–€â–ˆâ–‘ â–‘â–‘â–‘â–‘â–‘â–€â–€â–€â–€â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘â–‘");
 	chat(botMsg);
 	sprintf(botMsg->text,"/ban %s",username);
 	chat(botMsg);
