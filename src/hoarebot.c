@@ -7,7 +7,7 @@ char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!ban","!u
 int force = 1;
 char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
 //raffle variables
-int raffleStaus = 0;
+int raffleStatus = 0;
 int numEntrants = 0;
 re_t raffleNames;
 //list of mods
@@ -23,11 +23,11 @@ char *MAL;
 int main(int argc, char *argv[])
 {
     int size, numRunning;
-    botMsg.irc = 0;
     char raw[BUFSIZ], botPass[37], running;
     chnlL_t channelList, *current;
     struct getMsg chatMsg;
     struct sendMsg botMsg;
+    botMsg.irc = 0;
     FILE *passFile;
     passFile = fopen("pass","r");
     if(!passFile)
@@ -76,24 +76,32 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(0,0))
+        switch(daemon(1,1))
         {
             case -1:
                 printf("Daemonizing has failed\n");
                 return -1;
             case 0:
+                printf("0");
                 strcpy(botMsg.channel,argv[1]);
 				//create PID file for new bot
+                printf("1");
 				chdir(PID_DIR);
+                printf("2");
 				FILE *newPID;
-				fopen(botMsg.channel,"a");
+                printf("3");
+				newPID = fopen(botMsg.channel,"a");
+                printf("4");
 				sprintf(raw,"%i",(int) getpid());//borrow raw to not use extra memory
+                printf("5");
 				if(fputs(raw,newPID) == -1)
 				{
 					printf("Failed to make a PID file.\n");
 				}
 				chdir("..");//leave PID_DIR
+                printf("6");
                 botMsg.irc = twitchChatConnect();//the irc socket file descriptor
+                printf("7");
                 if(botMsg.irc == -1)
                 {
                     printf("Couldn't connect to twitch servers.\n");
@@ -209,6 +217,30 @@ int inSC(char *cmd)
 	return 0;
 }
 
+int argPos(char *cmd, int argNum)
+{
+    int cmdArgPos = 0;
+    while(argNum != 0)
+    {
+        cmdArgPos++;
+        if(cmd[cmdArgPos] == ' ') argNum--;//if an argument is found decrement
+        else if(cmd[cmdArgPos] == '\0') return -1;//if end of cmd is reached
+    }
+    return cmdArgPos + 1;//the start of the selected command argument
+}
+
+void stripCmdInput(char *cmd)
+{
+    int i, j;
+    j = 0;
+    for(i = argPos(cmd,1);cmd[i] != '\0';i++)
+    {
+        cmd[j] = cmd[i];
+        j++;
+    }
+    cmd[j] = '\0';
+}
+
 //maybe I should make a command type with the command and the rest of the text
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 {
@@ -276,22 +308,17 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 			}
 			else if(strstr(chatMsg->text,secretCommands[2]))//!ban
 			{
-				int i, j;
-				j = 0;
-				char username[128];
-				for(i = argPos(chatMsg->text);chatMsg->text[i] != '\0';i++)
-				{
-					username[j] = chatMsg->text[i];
-					j++;
-				}
-				ban(username,botMsg);
+                stripCmdInput(chatMsg->text);
+				ban(chatMsg->text,botMsg);
 			}
 			else if(strstr(chatMsg->text,secretCommands[3]))//!updatepasta
 			{
+                stripCmdInput(chatMsg->text);
 				updateList(chatMsg->text,0,'w',botMsg);
 			}
 			else if(strstr(chatMsg->text,secretCommands[4]))//!removepasta
 			{
+                stripCmdInput(chatMsg->text);
 				updateList(chatMsg->text,0,'d',botMsg);
 			}
 			else if(strstr(chatMsg->text,secretCommands[5]))//!toggleraffle
@@ -323,18 +350,22 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 			}
 			else if(strstr(chatMsg->text,secretCommands[7]))//!updatehealthy
 			{
+                stripCmdInput(chatMsg->text);
 				updateList(chatMsg->text,1,'w',botMsg);
 			}
 			else if(strstr(chatMsg->text,secretCommands[8]))//!removehealthy
 			{
+                stripCmdInput(chatMsg->text);
 				updateList(chatMsg->text,1,'d',botMsg);
 			}
 			else if(strstr(chatMsg->text,secretCommands[9]))//!updatequote
 			{
+                stripCmdInput(chatMsg->text);
 				updateList(chatMsg->text,2,'w',botMsg);
 			}
 			else if(strstr(chatMsg->text,secretCommands[10]))//!removequote
 			{
+                stripCmdInput(chatMsg->text);
 				updateList(chatMsg->text,2,'d',botMsg);
 			}
 		}

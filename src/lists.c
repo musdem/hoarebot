@@ -118,18 +118,6 @@ int removeItem(char *listItem, int listType)
     return 0;//return -1 if item isn't in the list
 }
 
-int argPos(char *cmd, int argNum)
-{
-    int cmdArgPos = 0;
-    while(argNum != 0)
-    {
-        cmdArgPos++;
-        if(cmd[cmdArgPos] == ' ') argNum--;//if an argument is found decrement
-        else if(cmd[cmdArgPos] == '\0') return -1;//if end of cmd is reached
-    }
-    return cmdArgPos + 1;//the start of the selected command argument
-}
-
 char *getRandomItem(int listType)
 {
     int i, item;
@@ -143,16 +131,8 @@ char *getRandomItem(int listType)
     return CL->item;
 }
 
-void updateList(char *rawCmd, int listType, char mode, struct sendMsg *botMsg)
+void updateList(char *listItem, int listType, char mode, struct sendMsg *botMsg)
 {
-    int i, j;
-	j = 0;
-	char listItem[BUFSIZ];
-	for(i = argPos(rawCmd);rawCmd[i] != '\0';i++)//get list item from rawCmd
-	{
-		listItem[j] = rawCmd[i];
-		j++;
-	}
 	if(mode == 'w')
     {
         if(!itemInList(listItem,listType))
