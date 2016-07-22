@@ -82,32 +82,14 @@ int main(int argc, char *argv[])
                 printf("Daemonizing has failed\n");
                 return -1;
             case 0:
-                printf("0");
                 strcpy(botMsg.channel,argv[1]);
-				//create PID file for new bot
-                printf("1");
-				chdir(PID_DIR);
-                printf("2");
-				FILE *newPID;
-                printf("3");
-				newPID = fopen(botMsg.channel,"a");
-                printf("4");
-				sprintf(raw,"%i",(int) getpid());//borrow raw to not use extra memory
-                printf("5");
-				if(fputs(raw,newPID) == -1)
-				{
-					printf("Failed to make a PID file.\n");
-				}
-				chdir("..");//leave PID_DIR
-                printf("6");
                 botMsg.irc = twitchChatConnect();//the irc socket file descriptor
-                printf("7");
                 if(botMsg.irc == -1)
                 {
                     printf("Couldn't connect to twitch servers.\n");
-					return -1;
+				    return -1;
                 }
-                if(joinChannel(botMsg.irc, botMsg.channel, botPass) == -1)
+                if(joinChannel(&botMsg, botPass) == -1)
                 {
                     printf("Couldn't join the channel\n");
                 }
@@ -117,6 +99,7 @@ int main(int argc, char *argv[])
                 return -1;
         }
     }
+    createPID(&botMsg);
     running = 1;
     while(running)
     {
@@ -139,6 +122,28 @@ int main(int argc, char *argv[])
         }
     }
     return 0;
+}
+
+void createPID(struct sendMsg *botMsg)
+{
+    int i;
+    char fileData[256];
+    for(i = 1;botMsg->channel[i] != '\0';i++)//remove the pound symbol from the channel
+    {
+        fileData[i-1] = botMsg->channel[i];
+    }
+    fileData[i-1] = '\0';
+    //create PID file for new bot
+    chdir(PID_DIR);
+    FILE *newPID;
+    newPID = fopen(fileData,"a");
+    sprintf(fileData,"%i",(int) getpid());
+    if(fputs(fileData,newPID) == -1)
+    {
+        printf("Failed to make a PID file.\n");
+    }
+    fclose(newPID);
+    chdir("..");//leave PID_DIR
 }
 
 int runningBots(chnlL_t *CL)
@@ -271,7 +276,15 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     }
     else if(!strcmp(chatMsg->text,commands[4]))//!raffle
     {
-        raffle(chatMsg->username, botMsg);
+        if(raffleStatus)
+        {
+            raffle(chatMsg->username, botMsg);
+        }
+        else
+        {
+            strcpy(botMsg->text,"There is no draw dumbass FailFish");
+            chat(botMsg);
+        }
     }
     else if(!strcmp(chatMsg->text, commands[5]))//!social
     {
@@ -289,7 +302,7 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     }
 	else if(inSC(chatMsg->text))
 	{
-		if(isMod(chatMsg->username))//check for mod status
+		if(1/*isMod(chatMsg->username)*/)//check for mod status
 		{
 			if(strstr(chatMsg->text,secretCommands[0]))//!modcommands
 			{

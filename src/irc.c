@@ -51,36 +51,36 @@ int twitchChatConnect()
     return irc;
 }
 
-int joinChannel(int irc, char *channel, char *botPass)//standard way to join IRC server
+int joinChannel(struct sendMsg *botMsg, char *botPass)//standard way to join IRC server
 {
     int size;
     char buff[BUFSIZ];
     size = sprintf(buff,"PASS %s\r\n", botPass);
-    if(write(irc,buff,size) == -1)
+    if(write(botMsg->irc,buff,size) == -1)
     {
         printf("couldn't write PASS to server: %i\n",errno);
         return -1;
     }
     size = sprintf(buff,"USER %s\r\n", BOTNICK);
-    if(write(irc,buff,size) == -1)
+    if(write(botMsg->irc,buff,size) == -1)
     {
         printf("couldn't write USER to server: %i\n",errno);
         return -1;
     }
     size = sprintf(buff,"NICK %s\r\n", BOTNICK);
-    if(write(irc,buff,size) == -1)
+    if(write(botMsg->irc,buff,size) == -1)
     {
         printf("couldn't write NICK to server: %i\n",errno);
         return -1;
     }
-    size = sprintf(buff,"JOIN %s\r\n", channel);
-    if(write(irc,buff,size) == -1)
+    size = sprintf(buff,"JOIN %s\r\n", botMsg->channel);
+    if(write(botMsg->irc,buff,size) == -1)
     {
         printf("couldn't write JOIN to server: %i\n",errno);
         return -1;
     }
     size = sprintf(buff,"CAP REQ :twitch.tv/commands\r\n");
-    if(write(irc,buff,size) == -1)
+    if(write(botMsg->irc,buff,size) == -1)
     {
         printf("couldn't write CAP REQ to server: %i\n",errno);
         return -1;

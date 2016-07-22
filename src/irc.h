@@ -29,7 +29,7 @@ struct sendMsg
 };
 
 int twitchChatConnect();
-int joinChannel(int irc, char *channel, char *botPass);
+int joinChannel(struct sendMsg *botMsg, char *botPass);
 int chat(struct sendMsg *botMsg);
 size_t parseRaw(char *raw, struct getMsg *chatMsg);
 

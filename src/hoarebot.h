@@ -34,6 +34,7 @@ typedef struct ModList
 	struct ModList *next;
 }ml_t;
 
+void createPID(struct sendMsg *botMsg);
 int runningBots(chnlL_t *CL);
 void getMods(struct sendMsg *botMsg);
 int isMod(char *username);
