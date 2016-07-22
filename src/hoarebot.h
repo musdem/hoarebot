@@ -40,7 +40,7 @@ void getMods(struct sendMsg *botMsg);
 int isMod(char *username);
 int inSC(char *cmd);
 int argPos(char *cmd, int argNum);
-void stripArg(char *cmd, int argNum);
+int stripCmdInput(char *cmd);
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg);
 void timeout(int seconds, char *username, struct sendMsg *botMsg);
 void ban(char *username, struct sendMsg *botMsg);

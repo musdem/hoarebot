@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(1,1))
+        switch(daemon(1,0))
         {
             case -1:
                 printf("Daemonizing has failed\n");
@@ -229,24 +229,30 @@ int argPos(char *cmd, int argNum)
     {
         cmdArgPos++;
         if(cmd[cmdArgPos] == ' ') argNum--;//if an argument is found decrement
-        else if(cmd[cmdArgPos] == '\0') return -1;//if end of cmd is reached
+        else if(cmd[cmdArgPos] == '\0') return 0;//if end of cmd is reached
     }
     return cmdArgPos + 1;//the start of the selected command argument
 }
 
-void stripCmdInput(char *cmd)
+int stripCmdInput(char *cmd)
 {
     int i, j;
+    i = argPos(cmd,1);
     j = 0;
-    for(i = argPos(cmd,1);cmd[i] != '\0';i++)
+    if(i)
     {
-        cmd[j] = cmd[i];
-        j++;
+        while(cmd[i] != '\0')
+        {
+            cmd[j] = cmd[i];
+            i++;
+            j++;
+        }
     }
+    else return 0;
     cmd[j] = '\0';
+    return 1;
 }
 
-//maybe I should make a command type with the command and the rest of the text
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 {
     if(!strcmp(chatMsg->text,commands[0]))//!commands
@@ -321,18 +327,39 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 			}
 			else if(strstr(chatMsg->text,secretCommands[2]))//!ban
 			{
-                stripCmdInput(chatMsg->text);
-				ban(chatMsg->text,botMsg);
+                if(stripCmdInput(chatMsg->text))
+                {
+                    ban(chatMsg->text,botMsg);
+                }
+				else
+                {
+                    strcpy(botMsg->text,"You forgot the ban name! FailFish");
+                    chat(botMsg);
+                }
 			}
 			else if(strstr(chatMsg->text,secretCommands[3]))//!updatepasta
 			{
-                stripCmdInput(chatMsg->text);
-				updateList(chatMsg->text,0,'w',botMsg);
+                if(stripCmdInput(chatMsg->text))
+                {
+                    updateList(chatMsg->text,0,'w',botMsg);
+                }
+				else
+                {
+                    strcpy(botMsg->text,"You forgot the pasta to add! FailFish");
+                    chat(botMsg);
+                }
 			}
 			else if(strstr(chatMsg->text,secretCommands[4]))//!removepasta
 			{
-                stripCmdInput(chatMsg->text);
-				updateList(chatMsg->text,0,'d',botMsg);
+                if(stripCmdInput(chatMsg->text))
+                {
+                    updateList(chatMsg->text,0,'d',botMsg);
+                }
+				else
+                {
+                    strcpy(botMsg->text,"You forgot the pasta to remove! FailFish");
+                    chat(botMsg);
+                }
 			}
 			else if(strstr(chatMsg->text,secretCommands[5]))//!toggleraffle
 			{
@@ -363,23 +390,51 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 			}
 			else if(strstr(chatMsg->text,secretCommands[7]))//!updatehealthy
 			{
-                stripCmdInput(chatMsg->text);
-				updateList(chatMsg->text,1,'w',botMsg);
+                if(stripCmdInput(chatMsg->text))
+                {
+                    updateList(chatMsg->text,1,'w',botMsg);
+                }
+				else
+                {
+                    strcpy(botMsg->text,"You forgot the lewd to add! FailFish");
+                    chat(botMsg);
+                }
 			}
 			else if(strstr(chatMsg->text,secretCommands[8]))//!removehealthy
 			{
-                stripCmdInput(chatMsg->text);
-				updateList(chatMsg->text,1,'d',botMsg);
+                if(stripCmdInput(chatMsg->text))
+                {
+                    updateList(chatMsg->text,1,'d',botMsg);
+                }
+				else
+                {
+                    strcpy(botMsg->text,"You forgot the lewd to remove! FailFish");
+                    chat(botMsg);
+                }
 			}
 			else if(strstr(chatMsg->text,secretCommands[9]))//!updatequote
 			{
-                stripCmdInput(chatMsg->text);
-				updateList(chatMsg->text,2,'w',botMsg);
+                if(stripCmdInput(chatMsg->text))
+                {
+                    updateList(chatMsg->text,2,'w',botMsg);
+                }
+				else
+                {
+                    strcpy(botMsg->text,"You forgot the quote to add! FailFish");
+                    chat(botMsg);
+                }
 			}
 			else if(strstr(chatMsg->text,secretCommands[10]))//!removequote
 			{
-                stripCmdInput(chatMsg->text);
-				updateList(chatMsg->text,2,'d',botMsg);
+                if(stripCmdInput(chatMsg->text))
+                {
+                    updateList(chatMsg->text,2,'d',botMsg);
+                }
+				else
+                {
+                    strcpy(botMsg->text,"You forgot the quote to remove! FailFish");
+                    chat(botMsg);
+                }
 			}
 		}
 		else//non mod trying to use mod cmd
