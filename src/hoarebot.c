@@ -570,7 +570,7 @@ void raffle(char *username, struct sendMsg *botMsg)
 
 void drawRaffle(struct sendMsg *botMsg)
 {
-	//TOOD get random list entry
+	//TODO get random list entry
 	//should tweak lists.c to let other things use it's functions
 }
 
