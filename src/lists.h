@@ -4,7 +4,7 @@
 #include <dirent.h>
 #include "irc.h"
 
-#define NUM_LISTS 5
+#define NUM_LISTS 4
 #define LIST_DIR "./lists"
 
 typedef struct List

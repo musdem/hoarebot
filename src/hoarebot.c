@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
         }
     }
     createPID(&botMsg);
+    getMods(&botMsg);
     running = 1;
     while(running)
     {
@@ -190,8 +191,47 @@ int runningBots(chnlL_t *CL)
 
 void getMods(struct sendMsg *botMsg)
 {
-    //TODO populate mod list using /mods and ml_t mods
-    //get raw and jump to mod lists then add mods to lists using lists.c and never save
+    int repeat, commaCount, i, j;
+    char rawMod[BUFSIZ];
+    ml_t *current;
+    strcpy(botMsg->text,"/mods");
+    chat(botMsg);
+    repeat = 0;
+    commaCount = 3;
+    i = 0;
+    j = 0;
+    do
+    {
+        read(botMsg->irc,rawMod,BUFSIZ);
+        repeat++;
+    }
+    while(repeat != 100 && strstr(rawMod,"The moderators of this room are: ") == NULL);
+    while(commaCount)
+    {
+        if(rawMod[i] == ':') commaCount--;
+        i++;
+    }
+    mods = malloc(sizeof(ml_t));
+    current = mods;
+    current->next = NULL;
+    for(i += 1;rawMod[i] != '\r';i++)
+    {
+        if(rawMod[i] != ',')
+        {
+            current->mod[j] = rawMod[i];
+            j++;
+        }
+        else
+        {
+            current->mod[j] = '\0';
+            current->next = malloc(sizeof(ml_t));
+            current->next->next = NULL;
+            current = current->next;
+            i += 1;//put i at space in front of next name on list
+            j = 0;
+        }
+    }
+    current->mod[j] = '\0';//end off the last mod in the list
 }
 
 int isMod(char *username)
@@ -308,7 +348,7 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     }
 	else if(inSC(chatMsg->text))
 	{
-		if(1/*isMod(chatMsg->username)*/)//check for mod status
+		if(isMod(chatMsg->username))//check for mod status
 		{
 			if(strstr(chatMsg->text,secretCommands[0]))//!modcommands
 			{
