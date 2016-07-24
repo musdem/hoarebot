@@ -238,7 +238,7 @@ int isMod(char *username)
 {
 	ml_t *current;
 	current = mods;
-	while(current->next)
+	while(current != NULL)
 	{
 		if(!strcmp(current->mod,username))
 		{
