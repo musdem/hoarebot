@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     {
         //I'll just remove this until later
         //TODO have clean bot shutdown and clean up
-		//make a channels directory for all channel data
+        //make a channels directory for all channel data
         /*if(!mkdir(channel,0700))//make directory for bot using channel and make it currect working directory
         {
             chdir(channel);
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(1,1))
+        switch(daemon(1,0))
         {
             case -1:
                 printf("Daemonizing has failed\n");
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
                 if(botMsg.irc == -1)
                 {
                     printf("Couldn't connect to twitch servers.\n");
-				    return -1;
+                    return -1;
                 }
                 if(joinChannel(&botMsg, botPass) == -1)
                 {
@@ -237,24 +237,24 @@ void getMods(struct sendMsg *botMsg)
 
 int isMod(char *username)
 {
-	ml_t *current;
-	current = mods;
-	while(current != NULL)
-	{
-		if(!strcmp(current->mod,username)) return 1;
-		current = current->next;
-	}
-	return 0;
+    ml_t *current;
+    current = mods;
+    while(current != NULL)
+    {
+        if(!strcmp(current->mod,username)) return 1;
+        current = current->next;
+    }
+    return 0;
 }
 
 int inSC(char *cmd)
 {
-	int i;
-	for(i = 0;i < NUM_MOD_CMD;i++)
-	{
-		if(!strstr(cmd,secretCommands[i])) return 1;
-	}
-	return 0;
+    int i;
+    for(i = 0;i < NUM_MOD_CMD;i++)
+    {
+        if(!strstr(cmd,secretCommands[i])) return 1;
+    }
+    return 0;
 }
 
 int argPos(char *cmd, int argNum)
@@ -341,81 +341,81 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
         getRandomItem(2);
         chat(botMsg);
     }
-	else if(inSC(chatMsg->text))
-	{
-		if(isMod(chatMsg->username))//check for mod status
-		{
-			if(strstr(chatMsg->text,secretCommands[0]))//!modcommands
-			{
-				int i;
-				for(i = 0;i < NUM_CMD - 1;i++)
-				{
-					strcat(botMsg->text,secretCommands[i]);
-					strcat(botMsg->text,", ");
-				}
-				strcat(botMsg->text,secretCommands[i]);
-				chat(botMsg);
-			}
-			else if(strstr(chatMsg->text,secretCommands[1]))//!refreshmods
-			{
-				getMods(botMsg);
-			}
-			else if(strstr(chatMsg->text,secretCommands[2]))//!ban
-			{
+    else if(inSC(chatMsg->text))
+    {
+        if(isMod(chatMsg->username))//check for mod status
+        {
+            if(strstr(chatMsg->text,secretCommands[0]))//!modcommands
+            {
+                int i;
+                for(i = 0;i < NUM_CMD - 1;i++)
+                {
+                    strcat(botMsg->text,secretCommands[i]);
+                    strcat(botMsg->text,", ");
+                }
+                strcat(botMsg->text,secretCommands[i]);
+                chat(botMsg);
+            }
+            else if(strstr(chatMsg->text,secretCommands[1]))//!refreshmods
+            {
+                getMods(botMsg);
+            }
+            else if(strstr(chatMsg->text,secretCommands[2]))//!ban
+            {
                 if(stripCmdInput(chatMsg->text))
                 {
                     ban(chatMsg->text,botMsg);
                 }
-				else
+                else
                 {
                     strcpy(botMsg->text,"You forgot the ban name! FailFish");
                     chat(botMsg);
                 }
-			}
-			else if(strstr(chatMsg->text,secretCommands[3]))//!updatepasta
-			{
+            }
+            else if(strstr(chatMsg->text,secretCommands[3]))//!updatepasta
+            {
                 if(stripCmdInput(chatMsg->text))
                 {
                     updateList(chatMsg->text,0,'w',botMsg);
                 }
-				else
+                else
                 {
                     strcpy(botMsg->text,"You forgot the pasta to add! FailFish");
                     chat(botMsg);
                 }
-			}
-			else if(strstr(chatMsg->text,secretCommands[4]))//!removepasta
-			{
+            }
+            else if(strstr(chatMsg->text,secretCommands[4]))//!removepasta
+            {
                 if(stripCmdInput(chatMsg->text))
                 {
                     updateList(chatMsg->text,0,'d',botMsg);
                 }
-				else
+                else
                 {
                     strcpy(botMsg->text,"You forgot the pasta to remove! FailFish");
                     chat(botMsg);
                 }
-			}
-			else if(strstr(chatMsg->text,secretCommands[5]))//!toggleraffle
-			{
-				if(raffleStatus)
-				{
-					raffleStatus = 0;
-					strcpy(botMsg->text,"Raffle closed.");
-					chat(botMsg);
-				}
-				else
-				{
-					raffleStatus = 1;
-					strcpy(botMsg->text,"Raffle open!");
-					chat(botMsg);
-				}
-			}
-			else if(strstr(chatMsg->text,secretCommands[6]))//!raffledraw
-			{
-				if(!raffleStatus)
-				{
-					if(numEntrants == 0)
+            }
+            else if(strstr(chatMsg->text,secretCommands[5]))//!toggleraffle
+            {
+                if(raffleStatus)
+                {
+                    raffleStatus = 0;
+                    strcpy(botMsg->text,"Raffle closed.");
+                    chat(botMsg);
+                }
+                else
+                {
+                    raffleStatus = 1;
+                    strcpy(botMsg->text,"Raffle open!");
+                    chat(botMsg);
+                }
+            }
+            else if(strstr(chatMsg->text,secretCommands[6]))//!raffledraw
+            {
+                if(!raffleStatus)
+                {
+                    if(numEntrants == 0)
                     {
                         strcpy(botMsg->text,"No on has entered the draw!");
                         chat(botMsg);
@@ -424,68 +424,68 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
                     {
                         drawRaffle(botMsg);
                     }
-				}
-				else
-				{
-					strcpy(botMsg->text,"The raffle is still on! FailFish");
-					chat(botMsg);
-				}
-			}
-			else if(strstr(chatMsg->text,secretCommands[7]))//!updatehealthy
-			{
+                }
+                else
+                {
+                    strcpy(botMsg->text,"The raffle is still on! FailFish");
+                    chat(botMsg);
+                }
+            }
+            else if(strstr(chatMsg->text,secretCommands[7]))//!updatehealthy
+            {
                 if(stripCmdInput(chatMsg->text))
                 {
                     updateList(chatMsg->text,1,'w',botMsg);
                 }
-				else
+                else
                 {
                     strcpy(botMsg->text,"You forgot the lewd to add! FailFish");
                     chat(botMsg);
                 }
-			}
-			else if(strstr(chatMsg->text,secretCommands[8]))//!removehealthy
-			{
+            }
+            else if(strstr(chatMsg->text,secretCommands[8]))//!removehealthy
+            {
                 if(stripCmdInput(chatMsg->text))
                 {
                     updateList(chatMsg->text,1,'d',botMsg);
                 }
-				else
+                else
                 {
                     strcpy(botMsg->text,"You forgot the lewd to remove! FailFish");
                     chat(botMsg);
                 }
-			}
-			else if(strstr(chatMsg->text,secretCommands[9]))//!updatequote
-			{
+            }
+            else if(strstr(chatMsg->text,secretCommands[9]))//!updatequote
+            {
                 if(stripCmdInput(chatMsg->text))
                 {
                     updateList(chatMsg->text,2,'w',botMsg);
                 }
-				else
+                else
                 {
                     strcpy(botMsg->text,"You forgot the quote to add! FailFish");
                     chat(botMsg);
                 }
-			}
-			else if(strstr(chatMsg->text,secretCommands[10]))//!removequote
-			{
+            }
+            else if(strstr(chatMsg->text,secretCommands[10]))//!removequote
+            {
                 if(stripCmdInput(chatMsg->text))
                 {
                     updateList(chatMsg->text,2,'d',botMsg);
                 }
-				else
+                else
                 {
                     strcpy(botMsg->text,"You forgot the quote to remove! FailFish");
                     chat(botMsg);
                 }
-			}
-		}
-		else//non mod trying to use mod cmd
-		{
-			strcpy(botMsg->text,"You aren't a mod! DansGame");
-			chat(botMsg);
-		}
-	}
+            }
+        }
+        else//non mod trying to use mod cmd
+        {
+            strcpy(botMsg->text,"You aren't a mod! DansGame");
+            chat(botMsg);
+        }
+    }
     else//command isn't real
     {
         sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);
@@ -502,10 +502,10 @@ void timeout(int seconds, char *username, struct sendMsg *botMsg)
 
 void ban(char *username, struct sendMsg *botMsg)
 {
-	strcpy(botMsg->text,"░░░░░░░░░░░░ ▄████▄░░░░░░░░░░░░░░░░░░░░ ██████▄░░░░░░▄▄▄░░░░░░░░░░ ░███▀▀▀▄▄▄▀▀▀░░░░░░░░░░░░░ ░░░▄▀▀▀▄░░░█▀▀▄░▄▀▀▄░█▄░█░ ░░░▄▄████░░█▀▀▄░█▄▄█░█▀▄█░ ░░░░██████░█▄▄▀░█░░█░█░▀█░ ░░░░░▀▀▀▀░░░░░░░░░░░░░░░░░");
-	chat(botMsg);
-	sprintf(botMsg->text,"/ban %s",username);
-	chat(botMsg);
+    strcpy(botMsg->text,"░░░░░░░░░░░░ ▄████▄░░░░░░░░░░░░░░░░░░░░ ██████▄░░░░░░▄▄▄░░░░░░░░░░ ░███▀▀▀▄▄▄▀▀▀░░░░░░░░░░░░░ ░░░▄▀▀▀▄░░░█▀▀▄░▄▀▀▄░█▄░█░ ░░░▄▄████░░█▀▀▄░█▄▄█░█▀▄█░ ░░░░██████░█▄▄▀░█░░█░█░▀█░ ░░░░░▀▀▀▀░░░░░░░░░░░░░░░░░");
+    chat(botMsg);
+    sprintf(botMsg->text,"/ban %s",username);
+    chat(botMsg);
 }
 
 void slots(char *username, struct sendMsg *botMsg)
