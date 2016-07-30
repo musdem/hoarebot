@@ -191,47 +191,47 @@ int runningBots(chnlL_t *CL)
 
 void getMods(struct sendMsg *botMsg)
 {
-    int repeat, commaCount, i, j;
+    int repeat, colonCount, rawPos, curModPos;
     char rawMod[BUFSIZ];
     ml_t *current;
     strcpy(botMsg->text,"/mods");
     chat(botMsg);
     repeat = 0;
-    commaCount = 3;
-    i = 0;
-    j = 0;
+    colonCount = 3;
+    rawPos = 0;
+    curModPos = 0;
     do
     {
         read(botMsg->irc,rawMod,BUFSIZ);
         repeat++;
     }
     while(repeat != 100 && strstr(rawMod,"The moderators of this room are: ") == NULL);
-    while(commaCount)
+    while(colonCount)//put rawPos at the start of the mod list
     {
-        if(rawMod[i] == ':') commaCount--;
-        i++;
+        if(rawMod[rawPos] == ':') colonCount--;
+        rawPos++;
     }
     mods = malloc(sizeof(ml_t));
     current = mods;
     current->next = NULL;
-    for(i += 1;rawMod[i] != '\r';i++)
+    for(rawPos += 1;rawMod[rawPos] != '\r';rawPos++)
     {
-        if(rawMod[i] != ',')
+        if(rawMod[rawPos] != ',')
         {
-            current->mod[j] = rawMod[i];
-            j++;
+            current->mod[curModPos] = rawMod[rawPos];
+            curModPos++;
         }
         else
         {
-            current->mod[j] = '\0';
+            current->mod[curModPos] = '\0';
             current->next = malloc(sizeof(ml_t));
             current->next->next = NULL;
             current = current->next;
-            i += 1;//put i at space in front of next name on list
-            j = 0;
+            rawPos++;//put rawPos at space in front of next name on list
+            curModPos = 0;
         }
     }
-    current->mod[j] = '\0';//end off the last mod in the list
+    current->mod[curModPos] = '\0';//end off the last mod in the list
 }
 
 int isMod(char *username)
@@ -240,10 +240,7 @@ int isMod(char *username)
 	current = mods;
 	while(current != NULL)
 	{
-		if(!strcmp(current->mod,username))
-		{
-			return 1;
-		}
+		if(!strcmp(current->mod,username)) return 1;
 		current = current->next;
 	}
 	return 0;
@@ -254,10 +251,7 @@ int inSC(char *cmd)
 	int i;
 	for(i = 0;i < NUM_MOD_CMD;i++)
 	{
-		if(!strstr(cmd,secretCommands[i]))
-		{
-			return 1;
-		}
+		if(!strstr(cmd,secretCommands[i])) return 1;
 	}
 	return 0;
 }
