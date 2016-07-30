@@ -9,7 +9,7 @@ char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","
 //raffle variables
 int raffleStatus = 0;
 int numEntrants = 0;
-re_t raffleNames;
+re_t *raffleNames;
 //list of mods
 ml_t *mods;
 //social variables
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(1,0))
+        switch(daemon(1,1))
         {
             case -1:
                 printf("Daemonizing has failed\n");
@@ -101,6 +101,7 @@ int main(int argc, char *argv[])
     }
     createPID(&botMsg);
     getMods(&botMsg);
+    raffleNames = NULL;
     running = 1;
     while(running)
     {
@@ -414,7 +415,15 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 			{
 				if(!raffleStatus)
 				{
-					drawRaffle(botMsg);
+					if(numEntrants == 0)
+                    {
+                        strcpy(botMsg->text,"No on has entered the draw!");
+                        chat(botMsg);
+                    }
+                    else
+                    {
+                        drawRaffle(botMsg);
+                    }
 				}
 				else
 				{
@@ -555,17 +564,56 @@ void slots(char *username, struct sendMsg *botMsg)
 
 void raffle(char *username, struct sendMsg *botMsg)
 {
-    //TODO check if user has entered already
+    if(raffleNames == NULL)//if the list of enterants has not been made yet
+    {
+        raffleNames = malloc(sizeof(re_t));
+        strcpy(raffleNames->username,username);
+        raffleNames->next = NULL;
+    }
+    else
+    {
+        re_t *current;
+        current = raffleNames;
+        while(current != NULL)
+        {
+            if(!strcmp(current->username,username))//check if the user has already entered
+            {
+                sprintf(botMsg->text,"%s, you are already in the draw! FailFish",username);
+                chat(botMsg);
+                return;
+            }
+            current = current->next;
+        }
+        current = malloc(sizeof(re_t));
+        strcpy(current->username,username);
+        current->next = NULL;
+    }
     sprintf(botMsg->text,"%s has entered the draw.",username);
     chat(botMsg);
-    //TODO add item to raffleNames
     numEntrants++;
 }
 
 void drawRaffle(struct sendMsg *botMsg)
 {
-	//TODO get random list entry
-	//should tweak lists.c to let other things use it's functions
+    int winner;
+    re_t *current;
+    current = raffleNames;
+    winner = rand() % numEntrants;
+    while(winner != 0)
+    {
+        current = current->next;
+        winner--;
+    }
+    sprintf(botMsg->text,"The winner is %s!",current->username);
+    chat(botMsg);
+    while(numEntrants != 0)//remove all entrys from list
+    {
+        current = raffleNames;//reset list
+        while(current->next != NULL) current = current->next;//loop to the end of the list to remove the item
+        free(current);
+        current = NULL;
+        numEntrants--;
+    }
 }
 
 void social(struct sendMsg *botMsg)
