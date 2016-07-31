@@ -417,7 +417,7 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
                 {
                     if(numEntrants == 0)
                     {
-                        strcpy(botMsg->text,"No on has entered the draw!");
+                        strcpy(botMsg->text,"No one has entered the draw!");
                         chat(botMsg);
                     }
                     else
@@ -609,6 +609,7 @@ void drawRaffle(struct sendMsg *botMsg)
     while(numEntrants != 0)//remove all entrys from list
     {
         current = raffleNames;//reset list
+        printf("in loop\n");//this lets the entry removal work... I don't know how though I need to look into this
         while(current->next != NULL) current = current->next;//loop to the end of the list to remove the item
         free(current);
         current = NULL;
