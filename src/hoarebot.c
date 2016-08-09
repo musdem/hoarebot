@@ -307,12 +307,12 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     }
     else if(!strcmp(chatMsg->text,commands[2]))//!pasta
     {
-        getRandomItem(0);
+        getRandomItem(0,botMsg->text);
         chat(botMsg);
     }
     else if(!strcmp(chatMsg->text,commands[3]))//!modsPls
     {
-        getRandomItem(3);
+        getRandomItem(3,botMsg->text);
         chat(botMsg);
     }
     else if(!strcmp(chatMsg->text,commands[4]))//!raffle
@@ -333,12 +333,12 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     }
     else if(!strcmp(chatMsg->text,commands[6]))//!healthy
     {
-        getRandomItem(1);
+        getRandomItem(1,botMsg->text);
         chat(botMsg);
     }
     else if(!strcmp(chatMsg->text,commands[7]))//!quote
     {
-        getRandomItem(2);
+        getRandomItem(2,botMsg->text);
         chat(botMsg);
     }
     else if(inSC(chatMsg->text))

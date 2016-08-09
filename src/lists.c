@@ -118,17 +118,17 @@ int removeItem(char *listItem, int listType)
     return 0;//return -1 if item isn't in the list
 }
 
-char *getRandomItem(int listType)
+void getRandomItem(int listType, char *item)
 {
-    int i, item;
+    int i, itemNum;
     list_t *CL;
-    item = rand() % numEntry[listType];
+    itemNum = rand() % numEntry[listType];
     CL = lists[listType];
-    for(i = 0;i < item;i++)
+    for(i = 0;i < itemNum;i++)
     {
         CL = CL->next;
     }
-    return CL->item;
+    strcpy(item,CL->item);
 }
 
 void updateList(char *listItem, int listType, char mode, struct sendMsg *botMsg)
