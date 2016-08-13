@@ -675,26 +675,33 @@ void drawRaffle(struct sendMsg *botMsg)
 
 void social(struct sendMsg *botMsg)
 {
-    char message[256];
-    if(socialSetVar & FACEBOOK_SET)
+    if(socialSetVar)
     {
-        sprintf(message,"Like %s on facebook at %s ",streamerName,facebook);
+        char message[256];
+        if(socialSetVar & FACEBOOK_SET)
+        {
+            sprintf(message,"Like %s on facebook at %s ",streamerName,facebook);
+        }
+        strcat(botMsg->text,message);
+        if(socialSetVar & TWITTER_SET)
+        {
+            sprintf(message,"Follow %s on twitter at %s ",streamerName,twitter);
+        }
+        strcat(botMsg->text,message);
+        if(socialSetVar & YOUTUBE_SET)
+        {
+            sprintf(message,"Subscribe to %s on youtube at %s ",streamerName,youtube);
+        }
+        strcat(botMsg->text,message);
+        if(socialSetVar & MAL_SET)
+        {
+            sprintf(message,"Friend %s on MAL at %s ",streamerName,MAL);
+        }
+        strcat(botMsg->text,message);
     }
-    strcat(botMsg->text,message);
-    if(socialSetVar & TWITTER_SET)
+    else
     {
-        sprintf(message,"Follow %s on twitter at %s ",streamerName,twitter);
+        strcpy(botMsg->text,"No social links BibleThump");
     }
-    strcat(botMsg->text,message);
-    if(socialSetVar & YOUTUBE_SET)
-    {
-        sprintf(message,"Subscribe to %s on youtube at %s ",streamerName,youtube);
-    }
-    strcat(botMsg->text,message);
-    if(socialSetVar & MAL_SET)
-    {
-        sprintf(message,"Friend %s on MAL at %s ",streamerName,MAL);
-    }
-    strcat(botMsg->text,message);
     chat(botMsg);
 }
