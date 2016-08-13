@@ -14,11 +14,11 @@ re_t *raffleNames;
 ml_t *mods;
 //social variables
 char socialSetVar = 0;
-char *streamerName;
-char *facebook;
-char *twitter;
-char *youtube;
-char *MAL;
+char streamerName[256];
+char facebook[1024];
+char twitter[1024];
+char youtube[1024];
+char MAL[1024];
 
 int main(int argc, char *argv[])
 {
@@ -167,6 +167,7 @@ int runningBots(chnlL_t *CL)
             {
                 pidFile = fopen(currentItem->d_name,"r");
                 fgets(pidStr,64,pidFile);
+                fclose(pidFile);
                 current->PID = (pid_t) atoi(pidStr);
                 strcpy(current->name,currentItem->d_name);
                 current->next = malloc(sizeof(chnlL_t));
@@ -233,6 +234,61 @@ void getMods(struct sendMsg *botMsg)
         }
     }
     current->mod[curModPos] = '\0';//end off the last mod in the list
+}
+
+void getSocial()
+{
+    int linePos, socialVarPos;
+    char currentLine[2048];
+    FILE *socialFile;
+    socialFile = fopen("socialInfo","r");
+    if(socialFile == NULL)
+    {
+        fopen("socialInfo","w+");
+        return;
+    }
+    while(fgets(currentLine,2048,socialFile))
+    {
+        switch(currentLine[0])
+        {
+            case 'S'://streamer name
+                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                {
+                    streamerName[socialVarPos] = currentLine[linePos];
+                }
+                break;
+            case 'F'://facebook link
+                socialSetVar |= FACEBOOK_SET;
+                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                {
+                    facebook[socialVarPos] = currentLine[linePos];
+                }
+                break;
+            case 'T'://twitter link
+                socialSetVar |= TWITTER_SET;
+                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                {
+                    twitter[socialVarPos] = currentLine[linePos];
+                }
+                break;
+            case 'Y'://youtube link
+                socialSetVar |= YOUTUBE_SET;
+                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                {
+                    youtube[socialVarPos] = currentLine[linePos];
+                }
+                break;
+            case 'M'://my anime list link
+                socialSetVar |= MAL_SET;
+                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                {
+                    MAL[socialVarPos] = currentLine[linePos];
+                }
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 int isMod(char *username)
