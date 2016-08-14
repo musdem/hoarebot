@@ -101,6 +101,7 @@ int main(int argc, char *argv[])
     }
     createPID(&botMsg);
     getMods(&botMsg);
+    getSocial();
     raffleNames = NULL;
     running = 1;
     while(running)
