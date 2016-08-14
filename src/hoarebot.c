@@ -294,21 +294,19 @@ void getSocial()
 int isMod(char *username)
 {
     ml_t *current;
-    current = mods;
-    while(current != NULL)
+    for(current = mods;current != NULL;current = current->next)
     {
         if(!strcmp(current->mod,username)) return 1;
-        current = current->next;
     }
     return 0;
 }
 
 int inSC(char *cmd)
 {
-    int i;
-    for(i = 0;i < NUM_MOD_CMD;i++)
+    int curSC;
+    for(curSC = 0;curSC < NUM_MOD_CMD;curSC++)
     {
-        if(!strstr(cmd,secretCommands[i])) return 1;
+        if(!strstr(cmd,secretCommands[curSC])) return 1;
     }
     return 0;
 }
@@ -327,20 +325,20 @@ int argPos(char *cmd, int argNum)
 
 int stripCmdInput(char *cmd)
 {
-    int i, j;
-    i = argPos(cmd,1);
-    j = 0;
-    if(i)
+    int curCmdPos, curArgPos;
+    curCmdPos = argPos(cmd,1);
+    curArgPos = 0;
+    if(curCmdPos)
     {
-        while(cmd[i] != '\0')
+        while(cmd[curCmdPos] != '\0')
         {
-            cmd[j] = cmd[i];
-            i++;
-            j++;
+            cmd[curArgPos] = cmd[curCmdPos];
+            curCmdPos++;
+            curArgPos++;
         }
     }
     else return 0;
-    cmd[j] = '\0';
+    cmd[curArgPos] = '\0';
     return 1;
 }
 
@@ -629,8 +627,7 @@ void raffle(char *username, struct sendMsg *botMsg)
     else
     {
         re_t *current;
-        current = raffleNames;
-        while(current != NULL)
+        for(current = raffleNames;current != NULL;current = current->next)
         {
             if(!strcmp(current->username,username))//check if the user has already entered
             {
@@ -638,7 +635,6 @@ void raffle(char *username, struct sendMsg *botMsg)
                 chat(botMsg);
                 return;
             }
-            current = current->next;
         }
         current = malloc(sizeof(re_t));
         strcpy(current->username,username);
@@ -662,14 +658,13 @@ void drawRaffle(struct sendMsg *botMsg)
     }
     sprintf(botMsg->text,"The winner is %s!",current->username);
     chat(botMsg);
-    while(numEntrants != 0)//remove all entrys from list
+    for(;numEntrants != 0;numEntrants--)//remove all entrys from list
     {
         current = raffleNames;//reset list
         printf("in loop\n");//this lets the entry removal work... I don't know how though I need to look into this
         while(current->next != NULL) current = current->next;//loop to the end of the list to remove the item
         free(current);
         current = NULL;
-        numEntrants--;
     }
 }
 
