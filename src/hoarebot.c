@@ -240,15 +240,15 @@ void getMods(struct sendMsg *botMsg)
 void getSocial()
 {
     int linePos, socialVarPos;
-    char currentLine[2048];
+    char currentLine[1024];
     FILE *socialFile;
     socialFile = fopen("socialInfo","r");
     if(socialFile == NULL)
     {
-        fopen("socialInfo","w+");
+        fclose(fopen("socialInfo","w+"));//create file if it doesn't exist
         return;
     }
-    while(fgets(currentLine,2048,socialFile))
+    while(fgets(currentLine,1024,socialFile))
     {
         switch(currentLine[0])
         {
@@ -290,6 +290,7 @@ void getSocial()
                 break;
         }
     }
+    fclose(socialFile);
 }
 
 int isMod(char *username)
