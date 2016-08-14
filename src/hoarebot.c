@@ -15,10 +15,10 @@ ml_t *mods;
 //social variables
 char socialSetVar = 0;
 char streamerName[256];
-char facebook[1024];
-char twitter[1024];
-char youtube[1024];
-char MAL[1024];
+char facebook[256];
+char twitter[256];
+char youtube[256];
+char MAL[256];
 
 int main(int argc, char *argv[])
 {
@@ -240,7 +240,7 @@ void getMods(struct sendMsg *botMsg)
 void getSocial()
 {
     int linePos, socialVarPos;
-    char currentLine[1024];
+    char currentLine[256];
     FILE *socialFile;
     socialFile = fopen("socialInfo","r");
     if(socialFile == NULL)
@@ -248,7 +248,7 @@ void getSocial()
         fclose(fopen("socialInfo","w+"));//create file if it doesn't exist
         return;
     }
-    while(fgets(currentLine,1024,socialFile))
+    while(fgets(currentLine,256,socialFile))
     {
         switch(currentLine[0])
         {
@@ -674,7 +674,7 @@ void social(struct sendMsg *botMsg)
 {
     if(socialSetVar)
     {
-        char message[256];
+        char message[512];
         if(socialSetVar & FACEBOOK_SET)
         {
             sprintf(message,"Like %s on facebook at %s ",streamerName,facebook);
