@@ -239,7 +239,7 @@ void getMods(struct sendMsg *botMsg)
 
 void getSocial()
 {
-    int linePos, socialVarPos;
+    int linePos;
     char currentLine[256];
     FILE *socialFile;
     socialFile = fopen("socialInfo","r");
@@ -253,37 +253,37 @@ void getSocial()
         switch(currentLine[0])
         {
             case 'S'://streamer name
-                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
                 {
-                    streamerName[socialVarPos] = currentLine[linePos];
+                    streamerName[linePos - 1] = currentLine[linePos];
                 }
                 break;
             case 'F'://facebook link
                 socialSetVar |= FACEBOOK_SET;
-                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
                 {
-                    facebook[socialVarPos] = currentLine[linePos];
+                    facebook[linePos - 1] = currentLine[linePos];
                 }
                 break;
             case 'T'://twitter link
                 socialSetVar |= TWITTER_SET;
-                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
                 {
-                    twitter[socialVarPos] = currentLine[linePos];
+                    twitter[linePos - 1] = currentLine[linePos];
                 }
                 break;
             case 'Y'://youtube link
                 socialSetVar |= YOUTUBE_SET;
-                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
                 {
-                    youtube[socialVarPos] = currentLine[linePos];
+                    youtube[linePos - 1] = currentLine[linePos];
                 }
                 break;
             case 'M'://my anime list link
                 socialSetVar |= MAL_SET;
-                for(linePos = 1, socialVarPos = 0;currentLine[linePos] != '\n';linePos++, socialVarPos++)
+                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
                 {
-                    MAL[socialVarPos] = currentLine[linePos];
+                    MAL[linePos - 1] = currentLine[linePos];
                 }
                 break;
             default:
