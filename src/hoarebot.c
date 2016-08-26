@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
                 if(joinChannel(&botMsg, botPass) == -1)
                 {
                     printf("Couldn't join the channel\n");
+                    return -1;
                 }
                 break;
             default:
