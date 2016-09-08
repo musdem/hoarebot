@@ -98,5 +98,6 @@ int chat(struct sendMsg *botMsg)//standard way to send a message to IRC server
         printf("Couldn't write chat message to server: %i\n",errno);
         return -1;
     }
+    botMsg->text[0] = '\0';//nullify the string for next message
     return 0;
 }

@@ -548,7 +548,6 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
         sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);
         chat(botMsg);
     }
-    botMsg->text[0] = '\0';//nullify the string for next message
 }
 
 void timeout(int seconds, char *username, struct sendMsg *botMsg)
