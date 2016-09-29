@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(1,0))
+        switch(daemon(1,1))
         {
             case -1:
                 printf("Daemonizing has failed\n");
@@ -678,23 +678,23 @@ void social(struct sendMsg *botMsg)
         if(socialSetVar & FACEBOOK_SET)
         {
             sprintf(message,"Like %s on facebook at %s ",streamerName,facebook);
+            strcat(botMsg->text,message);
         }
-        strcat(botMsg->text,message);
         if(socialSetVar & TWITTER_SET)
         {
             sprintf(message,"Follow %s on twitter at %s ",streamerName,twitter);
+            strcat(botMsg->text,message);
         }
-        strcat(botMsg->text,message);
         if(socialSetVar & YOUTUBE_SET)
         {
             sprintf(message,"Subscribe to %s on youtube at %s ",streamerName,youtube);
+            strcat(botMsg->text,message);
         }
-        strcat(botMsg->text,message);
         if(socialSetVar & MAL_SET)
         {
             sprintf(message,"Friend %s on MAL at %s ",streamerName,MAL);
+            strcat(botMsg->text,message);
         }
-        strcat(botMsg->text,message);
     }
     else
     {
