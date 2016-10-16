@@ -668,6 +668,7 @@ void drawRaffle(struct sendMsg *botMsg)
         free(current);
         current = NULL;
     }
+    raffleNames = NULL;
 }
 
 void social(struct sendMsg *botMsg)
