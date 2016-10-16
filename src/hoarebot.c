@@ -35,7 +35,6 @@ int main(int argc, char *argv[])
     }
     fgets(botPass,37,passFile);
     fclose(passFile);
-    strcpy(botMsg.channel,argv[1]);
     numRunning = runningBots(&channelList);
     srand(time(NULL));//seed rng with current time
     if(argc < 2)//no arguments were added to the command so list running bots
@@ -81,6 +80,7 @@ int main(int argc, char *argv[])
                 printf("Daemonizing has failed\n");
                 return -1;
             case 0:
+		strcpy(botMsg.channel,argv[1]);
                 break;
             default:
                 printf("You shouldn't have gotten here...\n");
