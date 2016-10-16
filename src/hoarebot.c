@@ -22,12 +22,10 @@ char MAL[256];
 
 int main(int argc, char *argv[])
 {
-    int size, numRunning;
-    char raw[BUFSIZ], botPass[37], running;
+    int numRunning;
+    char botPass[37];
     chnlL_t channelList, *current;
-    struct getMsg chatMsg;
     struct sendMsg botMsg;
-    botMsg.irc = 0;
     FILE *passFile;
     passFile = fopen("pass","r");
     if(!passFile)
@@ -37,6 +35,7 @@ int main(int argc, char *argv[])
     }
     fgets(botPass,37,passFile);
     fclose(passFile);
+    strcpy(botMsg.channel,argv[1]);
     numRunning = runningBots(&channelList);
     srand(time(NULL));//seed rng with current time
     if(argc < 2)//no arguments were added to the command so list running bots
@@ -82,36 +81,50 @@ int main(int argc, char *argv[])
                 printf("Daemonizing has failed\n");
                 return -1;
             case 0:
-                strcpy(botMsg.channel,argv[1]);
-                botMsg.irc = twitchChatConnect();//the irc socket file descriptor
-                if(botMsg.irc == -1)
-                {
-                    printf("Couldn't connect to twitch servers.\n");
-                    return -1;
-                }
-                if(joinChannel(&botMsg, botPass) == -1)
-                {
-                    printf("Couldn't join the channel\n");
-                    return -1;
-                }
                 break;
             default:
                 printf("You shouldn't have gotten here...\n");
                 return -1;
         }
     }
-    createPID(&botMsg);
-    getMods(&botMsg);
+    initialize(botPass, &botMsg);
+    run(&botMsg);
+    return 0;
+}
+
+int initialize(char *botPass, struct sendMsg *botMsg)
+{
+    botMsg->irc = twitchChatConnect();//the irc socket file descriptor
+    if(botMsg->irc == -1)
+    {
+        printf("Couldn't connect to twitch servers.\n");
+        return -1;
+    }
+    if(joinChannel(botMsg, botPass) == -1)
+    {
+        printf("Couldn't join the channel\n");
+        return -1;
+    }
+    createPID(botMsg);
+    getMods(botMsg);
     getSocial();
     raffleNames = NULL;
+    return 0;
+}
+
+int run(struct sendMsg *botMsg)
+{
+    int size;
+    char raw[BUFSIZ], running;
+    struct getMsg chatMsg;
     running = 1;
     while(running)
     {
-        size = read(botMsg.irc,raw,BUFSIZ);
+        size = read(botMsg->irc,raw,BUFSIZ);
         if(strstr(raw,"PING :"))//make sure the bot stays connected
         {
             size = sprintf(raw,"PONG :tmi.twitch.tv\r\n");
-            if(write(botMsg.irc,raw,size) == -1)
+            if(write(botMsg->irc,raw,size) == -1)
             {
                 printf("couldn't write PING back server: %i\n",errno);
                 return -1;
@@ -121,7 +134,7 @@ int main(int argc, char *argv[])
         {
             if(chatMsg.text[0] == '!')
             {
-                command(&chatMsg, &botMsg);
+                command(&chatMsg, botMsg);
             }
         }
     }
