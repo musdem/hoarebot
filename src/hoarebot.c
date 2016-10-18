@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(1,1))
+        switch(daemon(1,0))
         {
             case -1:
                 printf("Daemonizing has failed\n");
