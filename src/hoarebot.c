@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
         {
             current = &channelList;
             printf("Current bots running: %i\n",numRunning);
-            while(current->next != NULL)
+            while(current != NULL)
             {
                 printf("Channel: %s\nPID: %i\n", current->name, (int) current->PID);
                 current = current->next;
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(1,0))
+        switch(daemon(1,1))
         {
             case -1:
                 printf("Daemonizing has failed\n");
@@ -167,7 +167,7 @@ int runningBots(chnlL_t *CL)
 {
     int numRunning = 0;
     char pidStr[64];
-    chnlL_t *current;
+    chnlL_t *current, *previous;
     DIR *hoarebotPidDir;
     FILE *pidFile;
     struct dirent *currentItem;
@@ -175,6 +175,7 @@ int runningBots(chnlL_t *CL)
     if(hoarebotPidDir)//dir exists so read in running channels
     {
         chdir(PID_DIR);
+        previous = NULL;
         current = CL;
         for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))//go over every item in run dir
         {
@@ -187,15 +188,20 @@ int runningBots(chnlL_t *CL)
                 strcpy(current->name,currentItem->d_name);
                 current->next = malloc(sizeof(chnlL_t));
                 current->next->next = NULL;
+                previous = current;
                 current = current->next;
                 numRunning++;
             }
         }
         closedir(hoarebotPidDir);
-        if(current->next != NULL)//make sure this doesn't try to free something that isn't there
+        if(previous == NULL)//if there are no bots running set the head to null
         {
-            free(current);
-            current = NULL;
+            CL = NULL;
+        }
+        else//free the last node
+        {
+            free(previous->next);
+            previous->next = NULL;
         }
         return numRunning;
     }
