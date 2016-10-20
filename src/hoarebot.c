@@ -682,7 +682,6 @@ void drawRaffle(struct sendMsg *botMsg)
     for(;numEntrants != 0;numEntrants--)//remove all entrys from list
     {
         current = raffleNames;//reset list
-        printf("in loop\n");//this lets the entry removal work... I don't know how though I need to look into this
         while(current->next != NULL) current = current->next;//loop to the end of the list to remove the item
         free(current);
         current = NULL;
