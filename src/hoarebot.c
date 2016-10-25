@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
                 printf("Daemonizing has failed\n");
                 return -1;
             case 0:
-		strcpy(botMsg.channel,argv[1]);
+                strcpy(botMsg.channel,argv[1]);
                 break;
             default:
                 printf("You shouldn't have gotten here...\n");
