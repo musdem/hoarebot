@@ -54,6 +54,32 @@ void populateLists()
     }
 }
 
+void writeList(int listType)
+{
+    int listPos;
+    struct dirent *currentItem;
+    list_t *current;
+    DIR *hoarebotListDir;
+    FILE *listFile;
+    hoarebotListDir = opendir(LIST_DIR);
+    for(currentItem = readdir(hoarebotListDir);currentItem;currentItem = readdir(hoarebotListDir))
+    {
+        if(!strcmp(lists[listType]->type,currentItem->d_name))
+        {
+            remove(currentItem->d_name);
+            listFile = fopen(currentItem->d_name,"a+");
+            current = lists[listType]->next;
+            for(listPos = 0;listPos < numEntry[listType];listPos++)
+            {
+                fputs(current->item,listFile);
+                current = current->next;
+            }
+            fclose(listFile);
+        }
+    }
+    closedir(hoarebotListDir);
+}
+
 int itemInList(char *listItem, int listType)
 {
     list_t *CL;
