@@ -75,9 +75,10 @@ void writeList(int listType)
                 current = current->next;
             }
             fclose(listFile);
+            closedir(hoarebotListDir);
+            return;
         }
     }
-    closedir(hoarebotListDir);
 }
 
 int itemInList(char *listItem, int listType)
