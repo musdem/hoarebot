@@ -64,7 +64,7 @@ void writeList(int listType)
     DIR *hoarebotListDir;
     FILE *listFile;
     hoarebotListDir = opendir(LIST_DIR);
-    chdir(LIST_DIR)
+    chdir(LIST_DIR);
     for(currentItem = readdir(hoarebotListDir);currentItem;currentItem = readdir(hoarebotListDir))
     {
         if(!strcmp(lists[listType]->type,currentItem->d_name))
