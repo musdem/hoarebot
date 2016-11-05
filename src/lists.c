@@ -16,6 +16,7 @@ void populateLists()
     newItem = 1;
     if(hoarebotListDir)
     {
+        chdir(LIST_DIR);
         for(currentItem = readdir(hoarebotListDir);currentItem;currentItem = readdir(hoarebotListDir))
         {
             if(strcmp("..",currentItem->d_name) != 0 && strcmp(".",currentItem->d_name) != 0)//make sure that dir up and cur dir aren't considered a list
@@ -45,6 +46,7 @@ void populateLists()
                 newItem = 1;
             }
         }
+        chdir("..");
         closedir(hoarebotListDir);
     }
     else
@@ -62,6 +64,7 @@ void writeList(int listType)
     DIR *hoarebotListDir;
     FILE *listFile;
     hoarebotListDir = opendir(LIST_DIR);
+    chdir(LIST_DIR)
     for(currentItem = readdir(hoarebotListDir);currentItem;currentItem = readdir(hoarebotListDir))
     {
         if(!strcmp(lists[listType]->type,currentItem->d_name))
@@ -76,6 +79,7 @@ void writeList(int listType)
             }
             fclose(listFile);
             closedir(hoarebotListDir);
+            chdir("..");
             return;
         }
     }
