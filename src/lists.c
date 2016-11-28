@@ -89,7 +89,7 @@ int itemInList(char *listItem, int listType)
 {
     list_t *CL;
     CL = lists[listType];
-    while(CL)//iterate over the list until the item is found then return 1
+    while(CL)
     {
         if(!strcmp(listItem,CL->item))
         {
@@ -97,7 +97,7 @@ int itemInList(char *listItem, int listType)
         }
         CL = CL->next;
     }
-    return 0;//if nothing is found then return 0
+    return 0;
 }
 
 void addItem(char *listItem, int listType)
@@ -105,7 +105,7 @@ void addItem(char *listItem, int listType)
     list_t *CL;
     CL = lists[listType];
     numEntry[listType]++;
-    while(CL->next)//iterate over list until the next item is NULL
+    while(CL->next)
     {
         CL = CL->next;
     }
@@ -146,7 +146,7 @@ int removeItem(char *listItem, int listType)
         }
         CL = CL->next;
     }
-    return 0;//return -1 if item isn't in the list
+    return 0;
 }
 
 void getRandomItem(int listType, char *item)
