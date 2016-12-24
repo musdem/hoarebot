@@ -22,6 +22,12 @@ typedef struct Channel
     struct Channel *next;
 }chnlL_t;
 
+typedef struct Command
+{
+    char arg[128];
+    struct Command *next;
+}cmd_t;
+
 typedef struct RaffleEntrys
 {
     char username[128];
@@ -44,6 +50,7 @@ int isMod(char *username);
 int inSC(char *cmd);
 int argPos(char *cmd, int argNum);
 int stripCmdInput(char *cmd);
+void parseCommands(char *rawCmd, cmd_t *parsedCmd);
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg);
 void timeout(int seconds, char *username, struct sendMsg *botMsg);
 void ban(char *username, struct sendMsg *botMsg);

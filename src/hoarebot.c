@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(1,0))
+        switch(daemon(1,1))
         {
             case -1:
                 printf("Daemonizing has failed\n");
@@ -364,8 +364,48 @@ int stripCmdInput(char *cmd)
     return 1;
 }
 
+void parseCommands(char *rawCmd, cmd_t *parsedCmd)
+{
+    int cmdPos, cmdOffset;
+    for(cmdPos = 0, cmdOffset = 0;rawCmd[cmdPos] != '\0';cmdPos++, cmdOffset++)
+    {
+        if(rawCmd[cmdPos] != ' ')
+        {
+            parsedCmd->arg[cmdOffset] = rawCmd[cmdPos];
+        }
+        else
+        {
+            parsedCmd->arg[cmdOffset] = '\0';
+            cmdOffset = -1;
+            parsedCmd->next = malloc(sizeof(cmd_t));
+            parsedCmd = parsedCmd->next;
+            parsedCmd->next = NULL;
+        }
+    }
+    parsedCmd->arg[cmdOffset] = '\0';
+}
+
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 {
+    int curCmd;
+    cmd_t cmdParse, *current;
+    parseCommands(chatMsg->text,&cmdParse);
+    for(curCmd = 0;curCmd < NUM_CMD;curCmd++)
+    {
+        if(!strcmp(cmdParse.arg,commands[curCmd]))
+        {
+            printf("reg final: %i\n",curCmd);
+            break;
+        }
+    }
+    for(curCmd = 0;curCmd < NUM_MOD_CMD;curCmd++)
+    {
+        if(!strcmp(cmdParse.arg,secretCommands[curCmd]))
+        {
+            printf("mod final: %i\n",curCmd);
+            break;
+        }
+    }
     if(!strcmp(chatMsg->text,commands[0]))//!commands
     {
         int i;
