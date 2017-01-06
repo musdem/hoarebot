@@ -3,8 +3,8 @@
 //bot command variables
 char commands[NUM_CMD][32] = {"!commands","!slots","!pasta","!modspls","!raffle","!social","!healthy","!quote"};
 char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!ban","!updatepasta","!removepasta","!toggleraffle","!raffledraw","!updatehealthy","!removehealthy","!updatequote","!removequote"};
-void (*cmd[NUM_CMD])() = {&listCmd,&slots,&pasta,&modsPls,&raffle,&social,&healthy,&quote};
-char (*modCmd[NUM_MOD_CMD]) = {&listModCmd,&refreshMods,&ban,&updatePasta,&removePasta,&toggleRaffle,&raffleDraw,&updateHealthy,&removeHealthy,&updateQuote,&removeQuote};
+void (*cmd[NUM_CMD])(cmdInfo_t*) = {&listCmd,&slots,&pasta,&modsPls,&raffle,&social,&healthy,&quote};
+void (*modCmd[NUM_MOD_CMD])(cmdInfo_t*) = {&listModCmd,&refreshMods,&ban,&updatePasta,&removePasta,&toggleRaffle,&raffleDraw,&updateHealthy,&removeHealthy,&updateQuote,&removeQuote};
 //slots variables
 int force = 1;
 char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
