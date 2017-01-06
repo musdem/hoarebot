@@ -3,6 +3,8 @@
 //bot command variables
 char commands[NUM_CMD][32] = {"!commands","!slots","!pasta","!modspls","!raffle","!social","!healthy","!quote"};
 char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!ban","!updatepasta","!removepasta","!toggleraffle","!raffledraw","!updatehealthy","!removehealthy","!updatequote","!removequote"};
+void (*cmd[NUM_CMD])() = {&listCmd,&slots,&pasta,&modsPls,&raffle,&social,&healthy,&quote};
+char (*modCmd[NUM_MOD_CMD]) = {&listModCmd,&refreshMods,&ban,&updatePasta,&removePasta,&toggleRaffle,&raffleDraw,&updateHealthy,&removeHealthy,&updateQuote,&removeQuote};
 //slots variables
 int force = 1;
 char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
@@ -323,47 +325,6 @@ int isMod(char *username)
     return 0;
 }
 
-int inSC(char *cmd)
-{
-    int curSC;
-    for(curSC = 0;curSC < NUM_MOD_CMD;curSC++)
-    {
-        if(!strstr(cmd,secretCommands[curSC])) return 1;
-    }
-    return 0;
-}
-
-int argPos(char *cmd, int argNum)
-{
-    int cmdArgPos = 0;
-    while(argNum != 0)
-    {
-        cmdArgPos++;
-        if(cmd[cmdArgPos] == ' ') argNum--;//if an argument is found decrement
-        else if(cmd[cmdArgPos] == '\0') return 0;//if end of cmd is reached
-    }
-    return cmdArgPos + 1;//the start of the selected command argument
-}
-
-int stripCmdInput(char *cmd)
-{
-    int curCmdPos, curArgPos;
-    curCmdPos = argPos(cmd,1);
-    curArgPos = 0;
-    if(curCmdPos)
-    {
-        while(cmd[curCmdPos] != '\0')
-        {
-            cmd[curArgPos] = cmd[curCmdPos];
-            curCmdPos++;
-            curArgPos++;
-        }
-    }
-    else return 0;
-    cmd[curArgPos] = '\0';
-    return 1;
-}
-
 void parseCommands(char *rawCmd, cmd_t *parsedCmd)
 {
     int cmdPos, cmdOffset;
@@ -388,225 +349,36 @@ void parseCommands(char *rawCmd, cmd_t *parsedCmd)
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 {
     int curCmd;
-    cmd_t cmdParse, *current;
-    parseCommands(chatMsg->text,&cmdParse);
+    cmdInfo_t commandInfo;
+    commandInfo.botMsg = botMsg;
+    strcpy(commandInfo.username,chatMsg->username);
+    parseCommands(chatMsg->text,commandInfo.cmdParse);
     for(curCmd = 0;curCmd < NUM_CMD;curCmd++)
     {
         if(!strcmp(cmdParse.arg,commands[curCmd]))
         {
-            printf("reg final: %i\n",curCmd);
-            break;
+            cmd[curCmd](&commandInfo);
+            return;
         }
     }
     for(curCmd = 0;curCmd < NUM_MOD_CMD;curCmd++)
     {
         if(!strcmp(cmdParse.arg,secretCommands[curCmd]))
         {
-            printf("mod final: %i\n",curCmd);
-            break;
-        }
-    }
-    if(!strcmp(chatMsg->text,commands[0]))//!commands
-    {
-        int i;
-        for(i = 0;i < NUM_CMD - 1;i++)
-        {
-            strcat(botMsg->text,commands[i]);
-            strcat(botMsg->text,", ");
-        }
-        strcat(botMsg->text,commands[i]);
-        chat(botMsg);
-    }
-    else if(!strcmp(chatMsg->text,commands[1]))//!slots
-    {
-        slots(chatMsg->username, botMsg);
-    }
-    else if(!strcmp(chatMsg->text,commands[2]))//!pasta
-    {
-        getRandomItem(0,botMsg->text);
-        chat(botMsg);
-    }
-    else if(!strcmp(chatMsg->text,commands[3]))//!modsPls
-    {
-        getRandomItem(3,botMsg->text);
-        chat(botMsg);
-    }
-    else if(!strcmp(chatMsg->text,commands[4]))//!raffle
-    {
-        if(raffleStatus)
-        {
-            raffle(chatMsg->username, botMsg);
-        }
-        else
-        {
-            strcpy(botMsg->text,"There is no draw dumbass FailFish");
-            chat(botMsg);
-        }
-    }
-    else if(!strcmp(chatMsg->text, commands[5]))//!social
-    {
-        social(botMsg);
-    }
-    else if(!strcmp(chatMsg->text,commands[6]))//!healthy
-    {
-        getRandomItem(1,botMsg->text);
-        chat(botMsg);
-    }
-    else if(!strcmp(chatMsg->text,commands[7]))//!quote
-    {
-        getRandomItem(2,botMsg->text);
-        chat(botMsg);
-    }
-    else if(inSC(chatMsg->text))
-    {
-        if(isMod(chatMsg->username))//check for mod status
-        {
-            if(strstr(chatMsg->text,secretCommands[0]))//!modcommands
+            if(isMod(chatMsg->username))
             {
-                int i;
-                for(i = 0;i < NUM_CMD - 1;i++)
-                {
-                    strcat(botMsg->text,secretCommands[i]);
-                    strcat(botMsg->text,", ");
-                }
-                strcat(botMsg->text,secretCommands[i]);
+                modCmd[curCmd](&commandInfo);
+            }
+            else
+            {
+                strcpy(botMsg->text,"You aren't a mod! DansGame");
                 chat(botMsg);
             }
-            else if(strstr(chatMsg->text,secretCommands[1]))//!refreshmods
-            {
-                getMods(botMsg);
-            }
-            else if(strstr(chatMsg->text,secretCommands[2]))//!ban
-            {
-                if(stripCmdInput(chatMsg->text))
-                {
-                    ban(chatMsg->text,botMsg);
-                }
-                else
-                {
-                    strcpy(botMsg->text,"You forgot the ban name! FailFish");
-                    chat(botMsg);
-                }
-            }
-            else if(strstr(chatMsg->text,secretCommands[3]))//!updatepasta
-            {
-                if(stripCmdInput(chatMsg->text))
-                {
-                    updateList(chatMsg->text,0,'w',botMsg);
-                }
-                else
-                {
-                    strcpy(botMsg->text,"You forgot the pasta to add! FailFish");
-                    chat(botMsg);
-                }
-            }
-            else if(strstr(chatMsg->text,secretCommands[4]))//!removepasta
-            {
-                if(stripCmdInput(chatMsg->text))
-                {
-                    updateList(chatMsg->text,0,'d',botMsg);
-                }
-                else
-                {
-                    strcpy(botMsg->text,"You forgot the pasta to remove! FailFish");
-                    chat(botMsg);
-                }
-            }
-            else if(strstr(chatMsg->text,secretCommands[5]))//!toggleraffle
-            {
-                if(raffleStatus)
-                {
-                    raffleStatus = 0;
-                    strcpy(botMsg->text,"Raffle closed.");
-                    chat(botMsg);
-                }
-                else
-                {
-                    raffleStatus = 1;
-                    strcpy(botMsg->text,"Raffle open!");
-                    chat(botMsg);
-                }
-            }
-            else if(strstr(chatMsg->text,secretCommands[6]))//!raffledraw
-            {
-                if(!raffleStatus)
-                {
-                    if(numEntrants == 0)
-                    {
-                        strcpy(botMsg->text,"No one has entered the draw!");
-                        chat(botMsg);
-                    }
-                    else
-                    {
-                        drawRaffle(botMsg);
-                    }
-                }
-                else
-                {
-                    strcpy(botMsg->text,"The raffle is still on! FailFish");
-                    chat(botMsg);
-                }
-            }
-            else if(strstr(chatMsg->text,secretCommands[7]))//!updatehealthy
-            {
-                if(stripCmdInput(chatMsg->text))
-                {
-                    updateList(chatMsg->text,1,'w',botMsg);
-                }
-                else
-                {
-                    strcpy(botMsg->text,"You forgot the lewd to add! FailFish");
-                    chat(botMsg);
-                }
-            }
-            else if(strstr(chatMsg->text,secretCommands[8]))//!removehealthy
-            {
-                if(stripCmdInput(chatMsg->text))
-                {
-                    updateList(chatMsg->text,1,'d',botMsg);
-                }
-                else
-                {
-                    strcpy(botMsg->text,"You forgot the lewd to remove! FailFish");
-                    chat(botMsg);
-                }
-            }
-            else if(strstr(chatMsg->text,secretCommands[9]))//!updatequote
-            {
-                if(stripCmdInput(chatMsg->text))
-                {
-                    updateList(chatMsg->text,2,'w',botMsg);
-                }
-                else
-                {
-                    strcpy(botMsg->text,"You forgot the quote to add! FailFish");
-                    chat(botMsg);
-                }
-            }
-            else if(strstr(chatMsg->text,secretCommands[10]))//!removequote
-            {
-                if(stripCmdInput(chatMsg->text))
-                {
-                    updateList(chatMsg->text,2,'d',botMsg);
-                }
-                else
-                {
-                    strcpy(botMsg->text,"You forgot the quote to remove! FailFish");
-                    chat(botMsg);
-                }
-            }
-        }
-        else//non mod trying to use mod cmd
-        {
-            strcpy(botMsg->text,"You aren't a mod! DansGame");
-            chat(botMsg);
+            return;
         }
     }
-    else//command isn't real
-    {
-        sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);
-        chat(botMsg);
-    }
+    sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);//command isn't in any list
+    chat(botMsg);
 }
 
 void timeout(int seconds, char *username, struct sendMsg *botMsg)
@@ -615,121 +387,123 @@ void timeout(int seconds, char *username, struct sendMsg *botMsg)
     chat(botMsg);
 }
 
-void ban(char *username, struct sendMsg *botMsg)
+//start of regular chat commands
+void listCmd(cmdInfo_t *commandInfo)
 {
-    strcpy(botMsg->text,"░░░░░░░░░░░░ ▄████▄░░░░░░░░░░░░░░░░░░░░ ██████▄░░░░░░▄▄▄░░░░░░░░░░ ░███▀▀▀▄▄▄▀▀▀░░░░░░░░░░░░░ ░░░▄▀▀▀▄░░░█▀▀▄░▄▀▀▄░█▄░█░ ░░░▄▄████░░█▀▀▄░█▄▄█░█▀▄█░ ░░░░██████░█▄▄▀░█░░█░█░▀█░ ░░░░░▀▀▀▀░░░░░░░░░░░░░░░░░");
-    chat(botMsg);
-    sprintf(botMsg->text,"/ban %s",username);
-    chat(botMsg);
+    int i;
+    for(i = 0;i < NUM_CMD - 1;i++)
+    {
+        strcat(commandInfo->botMsg->text,commands[i]);
+        strcat(commandInfo->botMsg->text,", ");
+    }
+    strcat(commandInfo->botMsg->text,commands[i]);
+    chat(commandInfo->botMsg);
 }
 
-void slots(char *username, struct sendMsg *botMsg)
+void slots(cmdInfo_t *commandInfo)
 {
     if((rand() % force) - 10 > WILL_FORCE_3)//crappy PRNG
     {
         force = rand() % 9;
-        sprintf(botMsg->text,"%s | %s | %s",emotes[force],emotes[force],emotes[force]);
+        sprintf(commandInfo->botMsg->text,"%s | %s | %s",emotes[force],emotes[force],emotes[force]);
         force = 1;
     }
     else
     {
-        sprintf(botMsg->text,"%s | %s | %s",emotes[rand() % 9],emotes[rand() % 9],emotes[rand() % 9]);
+        sprintf(commandInfo->botMsg->text,"%s | %s | %s",emotes[rand() % 9],emotes[rand() % 9],emotes[rand() % 9]);
         force++;
     }
-    chat(botMsg);
-    if(!strcmp(botMsg->text,"Kappa | Kappa | Kappa"))
+    chat(commandInfo->botMsg);
+    if(!strcmp(commandInfo->botMsg->text,"Kappa | Kappa | Kappa"))
     {
-        sprintf(botMsg->text,"Goodbye %s Kappa",username);
-        chat(botMsg);
-        timeout(0,username,botMsg);
+        sprintf(commandInfo->botMsg->text,"Goodbye %s Kappa",commandInfo->username);
+        chat(commandInfo->botMsg);
+        timeout(0,commandInfo->username,commandInfo->botMsg);
     }
-    else if(!strcmp(botMsg->text,"TriHard | TriHard | TriHard"))
+    else if(!strcmp(commandInfo->botMsg->text,"TriHard | TriHard | TriHard"))
     {
         int i, j;
         int pos = 8;
         char TH[10] = " TriHard ";
-        strcpy(botMsg->text,"TriHard ");
-        for(i = 0;i < strlen(username);i++)
+        strcpy(commandInfo->botMsg->text,"TriHard ");
+        for(i = 0;i < strlen(commandInfo->username);i++)
         {
-            if(username[i] >= 97)//if the chracter in the username isn't capitalized capitalize it
+            if(commandInfo->username[i] >= 97)//if the chracter in the username isn't capitalized capitalize it
             {
-                botMsg->text[pos] = username[i] - 32;
+                commandInfo->botMsg->text[pos] = commandInfo->username[i] - 32;
             }
             else//if the character is anything else
             {
-                botMsg->text[pos] = username[i];
+                commandInfo->botMsg->text[pos] = commandInfo->username[i];
             }
             pos++;
             for(j = 0;j < 9;j++)
             {
-                botMsg->text[pos] = TH[j];
+                commandInfo->botMsg->text[pos] = TH[j];
                 pos++;
             }
         }
-        botMsg->text[pos] = '\0';//terminate string with null character
-        strcat(botMsg->text,"TriHard H TriHard Y TriHard P TriHard E TriHard ! TriHard");
-        chat(botMsg);
+        commandInfo->botMsg->text[pos] = '\0';//terminate string with null character
+        strcat(commandInfo->botMsg->text,"TriHard H TriHard Y TriHard P TriHard E TriHard ! TriHard");
+        chat(commandInfo->botMsg);
     }
-    else if(!strcmp(botMsg->text,"Kreygasm | Kreygasm | Kreygasm"))
+    else if(!strcmp(commandInfo->botMsg->text,"Kreygasm | Kreygasm | Kreygasm"))
     {
-        sprintf(botMsg->text,"Kreygasm For later tonight %s https://www.youtube.com/watch?v=P-Vvm7M4Lig Kreygasm",username);
-        chat(botMsg);
+        sprintf(commandInfo->botMsg->text,"Kreygasm For later tonight %s https://www.youtube.com/watch?v=P-Vvm7M4Lig Kreygasm",commandInfo->username);
+        chat(commandInfo->botMsg);
     }
 }
 
-void raffle(char *username, struct sendMsg *botMsg)
+void pasta(cmdInfo_t *commandInfo)
 {
-    if(raffleNames == NULL)//if the list of enterants has not been made yet
+    getRandomItem(0,commandInfo->botMsg->text);
+    chat(commandInfo->botMsg);
+}
+
+void modsPls(cmdInfo_t *commandInfo)
+{
+    getRandomItem(3,commandInfo->botMsg->text);
+    chat(commandInfo->botMsg);
+}
+
+void raffle(cmdInfo_t *commandInfo)
+{
+    if(raffleStatus)
     {
-        raffleNames = malloc(sizeof(re_t));
-        strcpy(raffleNames->username,username);
-        raffleNames->next = NULL;
+        if(raffleNames == NULL)//if the list of enterants has not been made yet
+        {
+            raffleNames = malloc(sizeof(re_t));
+            strcpy(raffleNames->username,commandInfo->username);
+            raffleNames->next = NULL;
+        }
+        else
+        {
+            re_t *current;
+            for(current = raffleNames;current != NULL;current = current->next)
+            {
+                if(!strcmp(current->username,commandInfo->username))//check if the user has already entered
+                {
+                    sprintf(commandInfo->botMsg->text,"%s, you are already in the draw! FailFish",commandInfo->username);
+                    chat(commandInfo->botMsg);
+                    return;
+                }
+            }
+            current = malloc(sizeof(re_t));
+            strcpy(current->username,commandInfo->username);
+            current->next = NULL;
+        }
+        sprintf(commandInfo->botMsg->text,"%s has entered the draw.",commandInfo->username);
+        chat(commandInfo->botMsg);
+        numEntrants++;
     }
     else
     {
-        re_t *current;
-        for(current = raffleNames;current != NULL;current = current->next)
-        {
-            if(!strcmp(current->username,username))//check if the user has already entered
-            {
-                sprintf(botMsg->text,"%s, you are already in the draw! FailFish",username);
-                chat(botMsg);
-                return;
-            }
-        }
-        current = malloc(sizeof(re_t));
-        strcpy(current->username,username);
-        current->next = NULL;
+        strcpy(commandInfo->botMsg->text,"There is no draw dumbass FailFish");
+        chat(commandInfo->botMsg);
     }
-    sprintf(botMsg->text,"%s has entered the draw.",username);
-    chat(botMsg);
-    numEntrants++;
 }
 
-void drawRaffle(struct sendMsg *botMsg)
-{
-    int winner;
-    re_t *current;
-    current = raffleNames;
-    winner = rand() % numEntrants;
-    while(winner != 0)
-    {
-        current = current->next;
-        winner--;
-    }
-    sprintf(botMsg->text,"The winner is %s!",current->username);
-    chat(botMsg);
-    for(;numEntrants != 0;numEntrants--)//remove all entrys from list
-    {
-        current = raffleNames;//reset list
-        while(current->next != NULL) current = current->next;//loop to the end of the list to remove the item
-        free(current);
-        current = NULL;
-    }
-    raffleNames = NULL;
-}
-
-void social(struct sendMsg *botMsg)
+void social(cmdInfo_t *commandInfo)
 {
     if(socialSetVar)
     {
@@ -737,27 +511,208 @@ void social(struct sendMsg *botMsg)
         if(socialSetVar & FACEBOOK_SET)
         {
             sprintf(message,"Like %s on facebook at %s ",streamerName,facebook);
-            strcat(botMsg->text,message);
+            strcat(commandInfo->botMsg->text,message);
         }
         if(socialSetVar & TWITTER_SET)
         {
             sprintf(message,"Follow %s on twitter at %s ",streamerName,twitter);
-            strcat(botMsg->text,message);
+            strcat(commandInfo->botMsg->text,message);
         }
         if(socialSetVar & YOUTUBE_SET)
         {
             sprintf(message,"Subscribe to %s on youtube at %s ",streamerName,youtube);
-            strcat(botMsg->text,message);
+            strcat(commandInfo->botMsg->text,message);
         }
         if(socialSetVar & MAL_SET)
         {
             sprintf(message,"Friend %s on MAL at %s ",streamerName,MAL);
-            strcat(botMsg->text,message);
+            strcat(commandInfo->botMsg->text,message);
         }
     }
     else
     {
-        strcpy(botMsg->text,"No social links BibleThump");
+        strcpy(commandInfo->botMsg->text,"No social links BibleThump");
     }
+    chat(commandInfo->botMsg);
+}
+
+void healthy(cmdInfo_t *commandInfo)
+{
+    getRandomItem(1,commandInfo->botMsg->text);
+    chat(commandInfo->botMsg);
+}
+
+void quote(cmdInfo_t *commandInfo)
+{
+    getRandomItem(2,botMsg->text);
     chat(botMsg);
+}
+//end of regular chat commands
+
+//start of mod chat commands
+void listModCmd(cmdInfo_t *commandInfo)
+{
+    int i;
+    for(i = 0;i < NUM_CMD - 1;i++)
+    {
+        strcat(commandInfo->botMsg->text,secretCommands[i]);
+        strcat(commandInfo->botMsg->text,", ");
+    }
+    strcat(commandInfo->botMsg->text,secretCommands[i]);
+    chat(commandInfo->botMsg);
+}
+
+void refreshMods(cmdInfo_t *commandInfo)
+{
+    //unallocate modlist from memory
+    getMods(commandInfo->botMsg);
+}
+
+void ban(cmdInfo_t *commandInfo)
+{
+    if(commandInfo->parsedCmd->next)
+    {
+        strcpy(commandInfo->botMsg->text,"You forgot the ban name! FailFish");
+        chat(commandInfo->botMsg);
+    }
+    else
+    {
+        strcpy(commandInfo->botMsg->text,"░░░░░░░░░░░░ ▄████▄░░░░░░░░░░░░░░░░░░░░ ██████▄░░░░░░▄▄▄░░░░░░░░░░ ░███▀▀▀▄▄▄▀▀▀░░░░░░░░░░░░░ ░░░▄▀▀▀▄░░░█▀▀▄░▄▀▀▄░█▄░█░ ░░░▄▄████░░█▀▀▄░█▄▄█░█▀▄█░ ░░░░██████░█▄▄▀░█░░█░█░▀█░ ░░░░░▀▀▀▀░░░░░░░░░░░░░░░░░");
+        chat(commandInfo->botMsg);
+        sprintf(commandInfo->botMsg->text,"/ban %s",commandInfo->parsedCmd->next->arg);
+        chat(commandInfo->botMsg);
+    }
+}
+
+void updatePasta(cmdInfo_t *commandInfo)
+{
+    if(commandInfo->parsedCmd->next)
+    {
+        strcpy(commandInfo->botMsg->text,"You forgot the pasta to add! FailFish");
+        chat(commandInfo->botMsg);
+    }
+    else
+    {
+        updateList(commandInfo->parsedCmd->next->arg,0,'w',commandInfo->botMsg);
+    }
+}
+
+void removePasta(cmdInfo_t *commandInfo)
+{
+    if(commandInfo->parsedCmd->next)
+    {
+        strcpy(commandInfo->botMsg->text,"You forgot the pasta to remove! FailFish");
+        chat(commandInfo->botMsg);
+    }
+    else
+    {
+        updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
+    }
+}
+
+void toggleRaffle(cmdInfo_t *commandInfo)
+{
+    if(raffleStatus)
+    {
+        raffleStatus = 0;
+        strcpy(commandInfo->botMsg->text,"Raffle closed.");
+        chat(commandInfo->botMsg);
+    }
+    else
+    {
+        raffleStatus = 1;
+        strcpy(commandInfo->botMsg->text,"Raffle open!");
+        chat(commandInfo->botMsg);
+    }
+}
+
+void raffleDraw(cmdInfo_t *commandInfo)
+{
+    if(!raffleStatus)
+    {
+        if(numEntrants == 0)
+        {
+            strcpy(commandInfo->botMsg->text,"No one has entered the draw!");
+            chat(commandInfo->botMsg);
+        }
+        else
+        {
+            int winner;
+            re_t *current;
+            current = raffleNames;
+            winner = rand() % numEntrants;
+            while(winner != 0)
+            {
+                current = current->next;
+                winner--;
+            }
+            sprintf(commandInfo->botMsg->text,"The winner is %s!",current->username);
+            chat(commandInfo->botMsg);
+            for(;numEntrants != 0;numEntrants--)//remove all entrys from list
+            {
+                current = raffleNames;//reset list
+                while(current->next != NULL) current = current->next;//loop to the end of the list to remove the item
+                free(current);
+                current = NULL;
+            }
+            raffleNames = NULL;
+        }
+    }
+    else
+    {
+        strcpy(commandInfo->botMsg->text,"The raffle is still on! FailFish");
+        chat(commandInfo->botMsg);
+    }
+}
+
+void updateHealthy(cmdInfo_t *commandInfo)
+{
+    if(commandInfo->parsedCmd->next)
+    {
+        strcpy(commandInfo->botMsg->text,"You forgot the lewd to add! FailFish");
+        chat(commandInfo->botMsg);
+    }
+    else
+    {
+        updateList(commandInfo->parsedCmd->next->arg,0,'w',commandInfo->botMsg);
+    }
+}
+
+void removeHealthy(cmdInfo_t *commandInfo)
+{
+    if(commandInfo->parsedCmd->next)
+    {
+        strcpy(commandInfo->botMsg->text,"You forgot the lewd to remove! FailFish");
+        chat(commandInfo->botMsg);
+    }
+    else
+    {
+        updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
+    }
+}
+
+void updateQuote(cmdInfo_t *commandInfo)
+{
+    if(commandInfo->parsedCmd->next)
+    {
+        strcpy(commandInfo->botMsg->text,"You forgot the quote to add! FailFish");
+        chat(commandInfo->botMsg);
+    }
+    else
+    {
+        updateList(commandInfo->parsedCmd->next->arg,0,'w',commandInfo->botMsg);
+    }
+}
+
+void removeQuote(cmdInfo_t *commandInfo)
+{
+    if(commandInfo->parsedCmd->next)
+    {
+        strcpy(commandInfo->botMsg->text,"You forgot the quote to remove! FailFish");
+        chat(commandInfo->botMsg);
+    }
+    else
+    {
+        updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
+    }
 }

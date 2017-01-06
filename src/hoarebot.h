@@ -40,6 +40,13 @@ typedef struct ModList
 	struct ModList *next;
 }ml_t;
 
+typedef struct CommandInfo
+{
+    struct sendMsg *botMsg;
+    char *username;
+    cmd_t *parsedCmd;
+}cmdInfo_t;
+
 int initialize(char *botPass, struct sendMsg *botMsg);
 int run(struct sendMsg *botMsg);
 void createPID(struct sendMsg *botMsg);
@@ -47,16 +54,26 @@ int runningBots(chnlL_t *CL);
 void getMods(struct sendMsg *botMsg);
 void getSocial();
 int isMod(char *username);
-int inSC(char *cmd);
-int argPos(char *cmd, int argNum);
-int stripCmdInput(char *cmd);
 void parseCommands(char *rawCmd, cmd_t *parsedCmd);
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg);
 void timeout(int seconds, char *username, struct sendMsg *botMsg);
-void ban(char *username, struct sendMsg *botMsg);
-void slots(char *username, struct sendMsg *botMsg);
-void raffle(char *username, struct sendMsg *botMsg);
-void drawRaffle(struct sendMsg *botMsg);
-void social(struct sendMsg *botMsg);
+void listCmd(cmdInfo_t *commandInfo);
+void slots(cmdInfo_t *commandInfo);
+void pasta(cmdInfo_t *commandInfo);
+void raffle(cmdInfo_t *commandInfo);
+void social(cmdInfo_t *commandInfo);
+void healthy(cmdInfo_t *commandInfo);
+void quote(cmdInfo_t *commandInfo);
+void listModCmd(cmdInfo_t *commandInfo);
+void refreshMods(cmdInfo_t *commandInfo);
+void ban(cmdInfo_t *commandInfo);
+void updatePasta(cmdInfo_t *commandInfo);
+void removePasta(cmdInfo_t *commandInfo);
+void toggleRaffle(cmdInfo_t *commandInfo);
+void raffleDraw(cmdInfo_t *commandInfo);
+void updateHealthy(cmdInfo_t *commandInfo);
+void removeHealthy(cmdInfo_t *commandInfo);
+void updateQuote(cmdInfo_t *commandInfo);
+void removeQuote(cmdInfo_t *commandInfo);
 
 #endif
