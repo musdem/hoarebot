@@ -718,3 +718,4 @@ void removeQuote(cmdInfo_t *commandInfo)
         updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
     }
 }
+//end of mod chat commands
