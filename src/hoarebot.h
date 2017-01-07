@@ -60,6 +60,7 @@ void timeout(int seconds, char *username, struct sendMsg *botMsg);
 void listCmd(cmdInfo_t *commandInfo);
 void slots(cmdInfo_t *commandInfo);
 void pasta(cmdInfo_t *commandInfo);
+void modsPls(cmdInfo_t *commandInfo);
 void raffle(cmdInfo_t *commandInfo);
 void social(cmdInfo_t *commandInfo);
 void healthy(cmdInfo_t *commandInfo);

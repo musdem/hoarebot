@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(1,1))
+        switch(daemon(1,0))
         {
             case -1:
                 printf("Daemonizing has failed\n");
@@ -328,22 +328,23 @@ int isMod(char *username)
 void parseCommands(char *rawCmd, cmd_t *parsedCmd)
 {
     int cmdPos, cmdOffset;
+    cmd_t *current = parsedCmd;
     for(cmdPos = 0, cmdOffset = 0;rawCmd[cmdPos] != '\0';cmdPos++, cmdOffset++)
     {
         if(rawCmd[cmdPos] != ' ')
         {
-            parsedCmd->arg[cmdOffset] = rawCmd[cmdPos];
+            current->arg[cmdOffset] = rawCmd[cmdPos];
         }
         else
         {
-            parsedCmd->arg[cmdOffset] = '\0';
+            current->arg[cmdOffset] = '\0';
             cmdOffset = -1;
-            parsedCmd->next = malloc(sizeof(cmd_t));
-            parsedCmd = parsedCmd->next;
-            parsedCmd->next = NULL;
+            current->next = malloc(sizeof(cmd_t));
+            current = current->next;
+            current->next = NULL;
         }
     }
-    parsedCmd->arg[cmdOffset] = '\0';
+    current->arg[cmdOffset] = '\0';
 }
 
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
@@ -352,10 +353,11 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     cmdInfo_t commandInfo;
     commandInfo.botMsg = botMsg;
     strcpy(commandInfo.username,chatMsg->username);
-    parseCommands(chatMsg->text,commandInfo.cmdParse);
+    commandInfo.parsedCmd = malloc(sizeof(cmd_t));
+    parseCommands(chatMsg->text,commandInfo.parsedCmd);
     for(curCmd = 0;curCmd < NUM_CMD;curCmd++)
     {
-        if(!strcmp(cmdParse.arg,commands[curCmd]))
+        if(!strcmp(commandInfo.parsedCmd->arg,commands[curCmd]))
         {
             cmd[curCmd](&commandInfo);
             return;
@@ -363,7 +365,7 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     }
     for(curCmd = 0;curCmd < NUM_MOD_CMD;curCmd++)
     {
-        if(!strcmp(cmdParse.arg,secretCommands[curCmd]))
+        if(!strcmp(commandInfo.parsedCmd->arg,secretCommands[curCmd]))
         {
             if(isMod(chatMsg->username))
             {
@@ -544,8 +546,8 @@ void healthy(cmdInfo_t *commandInfo)
 
 void quote(cmdInfo_t *commandInfo)
 {
-    getRandomItem(2,botMsg->text);
-    chat(botMsg);
+    getRandomItem(2,commandInfo->botMsg->text);
+    chat(commandInfo->botMsg);
 }
 //end of regular chat commands
 
