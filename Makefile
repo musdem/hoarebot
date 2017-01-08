@@ -6,13 +6,16 @@ all: hoarebot clean
 
 debug: hoarebotDebug
 
-hoarebot: hoarebot.o lists.o irc.o
+hoarebot: main.o hoarebot.o lists.o irc.o
 	mkdir -p bin
 	$(CC) -o ./bin/hoarebot *.o
 
-hoarebotDebug: hoarebotDebug.o listsDebug.o ircDebug.o
+hoarebotDebug: mainDebug.o hoarebotDebug.o listsDebug.o ircDebug.o
 	mkdir -p bin
 	$(CC) -o ./bin/hoarebot *.o
+
+main.o: ./src/main.c
+	$(CC) $(CFLAGS) ./src/main.c
 
 hoarebot.o: ./src/hoarebot.c
 	$(CC) $(CFLAGS) ./src/hoarebot.c
@@ -22,6 +25,9 @@ lists.o: ./src/lists.c
 
 irc.o: ./src/irc.c
 	$(CC) $(CFLAGS) ./src/irc.c
+
+mainDebug.o: ./src/main.c
+	$(CC) $(CFLAGSDEBUG) ./src/main.c
 
 hoarebotDebug.o: ./src/hoarebot.c
 	$(CC) $(CFLAGSDEBUG) ./src/hoarebot.c

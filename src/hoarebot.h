@@ -47,10 +47,6 @@ typedef struct CommandInfo
     cmd_t *parsedCmd;
 }cmdInfo_t;
 
-int initialize(char *botPass, struct sendMsg *botMsg);
-int run(struct sendMsg *botMsg);
-void createPID(struct sendMsg *botMsg);
-int runningBots(chnlL_t *CL);
 void getMods(struct sendMsg *botMsg);
 void getSocial();
 int isMod(char *username);
