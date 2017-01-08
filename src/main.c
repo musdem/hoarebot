@@ -1,54 +1,5 @@
 #include "hoarebot.h"
 
-int initialize(char *botPass, struct sendMsg *botMsg)
-{
-    botMsg->irc = twitchChatConnect();//the irc socket file descriptor
-    if(botMsg->irc == -1)
-    {
-        printf("Couldn't connect to twitch servers.\n");
-        return -1;
-    }
-    if(joinChannel(botMsg, botPass) == -1)
-    {
-        printf("Couldn't join the channel\n");
-        return -1;
-    }
-    createPID(botMsg);
-    getMods(botMsg);
-    getSocial();
-    raffleNames = NULL;
-    return 0;
-}
-
-int run(struct sendMsg *botMsg)
-{
-    int size;
-    char raw[BUFSIZ], running;
-    struct getMsg chatMsg;
-    running = 1;
-    while(running)
-    {
-        size = read(botMsg->irc,raw,BUFSIZ);
-        if(strstr(raw,"PING :"))//make sure the bot stays connected
-        {
-            size = sprintf(raw,"PONG :tmi.twitch.tv\r\n");
-            if(write(botMsg->irc,raw,size) == -1)
-            {
-                printf("couldn't write PING back server: %i\n",errno);
-                return -1;
-            }
-        }
-        else if(parseRaw(raw,&chatMsg))
-        {
-            if(chatMsg.text[0] == '!')
-            {
-                command(&chatMsg, botMsg);
-            }
-        }
-    }
-    return 0;
-}
-
 void createPID(struct sendMsg *botMsg)
 {
     int i;
@@ -118,6 +69,54 @@ int runningBots(chnlL_t *CL)
         mkdir(PID_DIR,0700);
         return runningBots(CL);
     }
+}
+
+int initialize(char *botPass, struct sendMsg *botMsg)
+{
+    botMsg->irc = twitchChatConnect();//the irc socket file descriptor
+    if(botMsg->irc == -1)
+    {
+        printf("Couldn't connect to twitch servers.\n");
+        return -1;
+    }
+    if(joinChannel(botMsg, botPass) == -1)
+    {
+        printf("Couldn't join the channel\n");
+        return -1;
+    }
+    createPID(botMsg);
+    getMods(botMsg);
+    getSocial();
+    return 0;
+}
+
+int run(struct sendMsg *botMsg)
+{
+    int size;
+    char raw[BUFSIZ], running;
+    struct getMsg chatMsg;
+    running = 1;
+    while(running)
+    {
+        size = read(botMsg->irc,raw,BUFSIZ);
+        if(strstr(raw,"PING :"))//make sure the bot stays connected
+        {
+            size = sprintf(raw,"PONG :tmi.twitch.tv\r\n");
+            if(write(botMsg->irc,raw,size) == -1)
+            {
+                printf("couldn't write PING back server: %i\n",errno);
+                return -1;
+            }
+        }
+        else if(parseRaw(raw,&chatMsg))
+        {
+            if(chatMsg.text[0] == '!')
+            {
+                command(&chatMsg, botMsg);
+            }
+        }
+    }
+    return 0;
 }
 
 int main(int argc, char *argv[])

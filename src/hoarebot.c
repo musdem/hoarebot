@@ -11,9 +11,9 @@ char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","
 //raffle variables
 int raffleStatus = 0;
 int numEntrants = 0;
-re_t *raffleNames;
+re_t *raffleNames = NULL;
 //list of mods
-ml_t *mods;
+ml_t *mods = NULL;
 //social variables
 char socialSetVar = 0;
 char streamerName[256];
