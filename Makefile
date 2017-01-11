@@ -8,11 +8,11 @@ debug: hoarebotDebug
 
 hoarebot: main.o hoarebot.o lists.o irc.o
 	mkdir -p bin
-	$(CC) -o ./bin/hoarebot *.o
+	$(CC) -o ./bin/hoarebot *.o -pthread
 
 hoarebotDebug: mainDebug.o hoarebotDebug.o listsDebug.o ircDebug.o
 	mkdir -p bin
-	$(CC) -o ./bin/hoarebot *.o
+	$(CC) -o ./bin/hoarebot *.o -pthread
 
 main.o: ./src/main.c
 	$(CC) $(CFLAGS) ./src/main.c

@@ -2,6 +2,8 @@
 #define HOAREBOT_H
 
 #include <time.h>
+#include <semaphore.h>
+#include <pthread.h>
 #include "lists.h"
 
 #define NUM_CMD 8

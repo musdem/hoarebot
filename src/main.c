@@ -1,5 +1,7 @@
 #include "hoarebot.h"
 
+int running = 1;
+
 void createPID(struct sendMsg *botMsg)
 {
     int i;
@@ -62,6 +64,7 @@ int runningBots(chnlL_t *CL)
             free(previous->next);
             previous->next = NULL;
         }
+        chdir("..");
         return numRunning;
     }
     else//make hoarebot pid directory and rerun function
@@ -93,9 +96,8 @@ int initialize(char *botPass, struct sendMsg *botMsg)
 int run(struct sendMsg *botMsg)
 {
     int size;
-    char raw[BUFSIZ], running;
+    char raw[BUFSIZ];
     struct getMsg chatMsg;
-    running = 1;
     while(running)
     {
         size = read(botMsg->irc,raw,BUFSIZ);
@@ -119,13 +121,37 @@ int run(struct sendMsg *botMsg)
     return 0;
 }
 
+static void *checkRunning(void *channel)
+{
+    char *c = (char*) channel;
+    sem_t *stopBot;
+    c[0] = '/';
+    sem_unlink(c);
+    stopBot = sem_open(c,(O_CREAT | O_EXCL),0600,0);
+    if(stopBot == NULL)
+    {
+        printf("couldn't create semaphore: %i\n",errno);
+        running = 0;
+        pthread_detach(pthread_self());
+    }
+    c[0] = '#';
+    sem_wait(stopBot);
+    sem_close(stopBot);
+    sem_unlink(c);
+    running = 0;
+    pthread_detach(pthread_self());
+    return NULL;
+}
+
 int main(int argc, char *argv[])
 {
-    int numRunning;
+    int numRunning,opt,verbose,kill;
     char botPass[37];
     chnlL_t channelList, *current;
     struct sendMsg botMsg;
     FILE *passFile;
+    verbose = 0;
+    kill = 0;
     passFile = fopen("pass","r");
     if(!passFile)
     {
@@ -136,7 +162,22 @@ int main(int argc, char *argv[])
     fclose(passFile);
     numRunning = runningBots(&channelList);
     srand(time(NULL));//seed rng with current time
-    if(argc < 2)//no arguments were added to the command so list running bots
+    while((opt = getopt(argc,argv,"kv")) != -1)
+    {
+        switch(opt)
+        {
+            case 'v':
+                verbose = 1;
+                break;
+            case 'k':
+                kill = 1;
+                break;
+            default:
+                printf("Command usage: hoarebot -kv [channel]\n");
+                return -1;
+        }
+    }
+    if(argc == 1)//no arguments were added to the command so list running bots
     {
         if(numRunning)
         {
@@ -154,9 +195,21 @@ int main(int argc, char *argv[])
         }
         return 0;
     }
-    else if(argc > 2)//too many arguments were provided
+    else if(kill)//too many arguments were provided
     {
-        printf("Too many arguments\n");
+        sem_t *stopBot;
+        strcpy(botMsg.channel,argv[optind]);
+        botMsg.channel[0] = '/';
+        stopBot = sem_open(botMsg.channel,0);
+        if(stopBot == NULL)
+        {
+            printf("couldn't create semaphore: %i\n",errno);
+            running = 0;
+            pthread_detach(pthread_self());
+        }
+        sem_post(stopBot);
+        printf("killing %s\n",botMsg.channel);
+        sem_close(stopBot);
         return 0;
     }
     else//argument provided this should be a channel to join
@@ -173,18 +226,26 @@ int main(int argc, char *argv[])
             printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
             return -1;
         }*/
-        switch(daemon(1,0))
+        switch(daemon(1,verbose))
         {
             case -1:
                 printf("Daemonizing has failed\n");
                 return -1;
             case 0:
-                strcpy(botMsg.channel,argv[1]);
+                strcpy(botMsg.channel,argv[optind]);
                 break;
             default:
                 printf("You shouldn't have gotten here...\n");
                 return -1;
         }
+    }
+    int runThreadStatus;
+    pthread_t runThread;
+    runThreadStatus = pthread_create(&runThread,NULL,checkRunning,botMsg.channel);
+    if(runThreadStatus != 0)
+    {
+        printf("run thread failed: %i\n",errno);
+        return -1;
     }
     initialize(botPass, &botMsg);
     run(&botMsg);
