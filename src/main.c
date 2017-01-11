@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
     }
     initialize(botPass, &botMsg);
     run(&botMsg);
-    strcpy(botMsg.text,"/me whispers rosebud");
+    strcpy(botMsg.text,"/me ~rosebud~");
     chat(&botMsg);
     return 0;
 }
