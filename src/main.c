@@ -207,7 +207,7 @@ int main(int argc, char *argv[])
                 kill = 1;
                 break;
             default:
-                printf("Command usage: hoarebot -kv [channel]\n");
+                printf("Command usage: hoarebot [-k kill selected bot | -v enable verbose mode] [channel]\n");
                 return -1;
         }
     }
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
         }
         return 0;
     }
-    else if(kill)//too many arguments were provided
+    else if(kill)
     {
         sem_t *stopBot;
         strcpy(botMsg.channel,argv[optind]);
@@ -238,8 +238,7 @@ int main(int argc, char *argv[])
         if(stopBot == NULL)
         {
             printf("couldn't create semaphore: %i\n",errno);
-            running = 0;
-            pthread_detach(pthread_self());
+            return -1;
         }
         sem_post(stopBot);
         printf("killing %s\n",botMsg.channel);
