@@ -2,15 +2,20 @@
 
 int running = 1;
 
-void createPID(struct sendMsg *botMsg)
+void removePound(char *channel, char *fixedChannel)
 {
     int i;
-    char fileData[256];
-    for(i = 1;botMsg->channel[i] != '\0';i++)//remove the pound symbol from the channel
+    for(i = 1;channel[i] != '\0';i++)//remove the pound symbol from the channel
     {
-        fileData[i-1] = botMsg->channel[i];
+        fixedChannel[i-1] = channel[i];
     }
-    fileData[i-1] = '\0';
+    fixedChannel[i-1] = '\0';
+}
+
+void createPID(struct sendMsg *botMsg)
+{
+    char fileData[64];
+    removePound(botMsg->channel,fileData);
     //create PID file for new bot
     chdir(PID_DIR);
     FILE *newPID;
@@ -69,13 +74,14 @@ int runningBots(chnlL_t *CL)
     }
     else//make hoarebot pid directory and rerun function
     {
-        mkdir(PID_DIR,0700);
+        mkdir(PID_DIR,0644);
         return runningBots(CL);
     }
 }
 
 int initialize(char *botPass, struct sendMsg *botMsg)
 {
+    char botDir[64];
     botMsg->irc = twitchChatConnect();//the irc socket file descriptor
     if(botMsg->irc == -1)
     {
@@ -88,6 +94,20 @@ int initialize(char *botPass, struct sendMsg *botMsg)
         return -1;
     }
     createPID(botMsg);
+    removePound(botMsg->channel,botDir);
+    if(chdir(botDir) != 0)
+    {
+        if(mkdir(botDir,0700) != 0)
+        {
+            printf("error making bot directory: %i\n",errno);
+            return -1;
+        }
+        if(chdir(botDir) != 0)
+        {
+            printf("error changing to bot directory (%s): %i\n",botDir,errno);
+            return -1;
+        }
+    }
     getMods(botMsg);
     getSocial();
     return 0;
@@ -117,6 +137,20 @@ int run(struct sendMsg *botMsg)
                 command(&chatMsg, botMsg);
             }
         }
+    }
+    return 0;
+}
+
+int cleanup(struct sendMsg *botMsg)
+{
+    char fileData[64];
+    sprintf(fileData,"../%s",PID_DIR);
+    chdir(fileData);
+    removePound(botMsg->channel,fileData);
+    if(remove(fileData) != 0)
+    {
+        printf("couldn't remove PID file: %i\n",errno);
+        return -1;
     }
     return 0;
 }
@@ -214,18 +248,6 @@ int main(int argc, char *argv[])
     }
     else//argument provided this should be a channel to join
     {
-        //I'll just remove this until later
-        //TODO have clean bot shutdown and clean up
-        //make a channels directory for all channel data
-        /*if(!mkdir(channel,0700))//make directory for bot using channel and make it currect working directory
-        {
-            chdir(channel);
-        }
-        else
-        {
-            printf("Could not create %s directory\nIs there a bot already running on that channel?\n",channel);
-            return -1;
-        }*/
         switch(daemon(1,verbose))
         {
             case -1:
@@ -247,8 +269,21 @@ int main(int argc, char *argv[])
         printf("run thread failed: %i\n",errno);
         return -1;
     }
-    initialize(botPass, &botMsg);
-    run(&botMsg);
+    if(initialize(botPass, &botMsg) != 0)
+    {
+        printf("failed to initialize the bot\n");
+        return -1;
+    }
+    if(run(&botMsg) != 0)
+    {
+        printf("bot run error\n");
+        return -1;
+    }
+    if(cleanup(&botMsg) != 0)
+    {
+        printf("failed to clean up bot\nyou need to manually clean up\n");
+        return -1;
+    }
     strcpy(botMsg.text,"/me ~rosebud~");
     chat(&botMsg);
     return 0;
