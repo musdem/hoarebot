@@ -241,7 +241,8 @@ int main(int argc, char *argv[])
             return -1;
         }
         sem_post(stopBot);
-        printf("killing %s\n",botMsg.channel);
+        botMsg.channel[0] = ' ';
+        printf("killing%s\n",botMsg.channel);
         sem_close(stopBot);
         return 0;
     }
