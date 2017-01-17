@@ -146,6 +146,9 @@ int cleanup(struct sendMsg *botMsg)
     char fileData[64];
     sprintf(fileData,"../%s",PID_DIR);
     chdir(fileData);
+    botMsg->channel[0] = '/';
+    sem_unlink(botMsg->channel);
+    botMsg->channel[0] = '#';
     removePound(botMsg->channel,fileData);
     if(remove(fileData) != 0)
     {
@@ -171,7 +174,6 @@ static void *checkRunning(void *channel)
     c[0] = '#';
     sem_wait(stopBot);
     sem_close(stopBot);
-    sem_unlink(c);
     running = 0;
     pthread_detach(pthread_self());
     return NULL;
