@@ -81,11 +81,13 @@ int runningBots(chnlL_t *CL)
 
 int isRunning(char *channel, chnlL_t *running)
 {
+    char check[64];
     chnlL_t *current;
+    removePound(channel,check);
     current = running;
     while(current != NULL)
     {
-        if(!strcmp(current->name,channel)) return 1;
+        if(!strcmp(current->name,check)) return 1;
         current = current->next;
     }
     return 0;
@@ -247,7 +249,7 @@ int main(int argc, char *argv[])
     {
         sem_t *stopBot;
         strcpy(botMsg.channel,argv[optind]);
-        if(isRunning(botMsg.channel,&channelList))
+        if(numRunning && isRunning(botMsg.channel,&channelList))
         {
             botMsg.channel[0] = '/';
             stopBot = sem_open(botMsg.channel,0);
