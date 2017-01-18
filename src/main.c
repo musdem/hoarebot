@@ -79,6 +79,18 @@ int runningBots(chnlL_t *CL)
     }
 }
 
+int isRunning(char *channel, chnlL_t *running)
+{
+    chnlL_t *current;
+    current = running;
+    while(current != NULL)
+    {
+        if(!strcmp(current->name,channel)) return 1;
+        current = current->next;
+    }
+    return 0;
+}
+
 int initialize(char *botPass, struct sendMsg *botMsg)
 {
     char botDir[64];
@@ -235,17 +247,21 @@ int main(int argc, char *argv[])
     {
         sem_t *stopBot;
         strcpy(botMsg.channel,argv[optind]);
-        botMsg.channel[0] = '/';
-        stopBot = sem_open(botMsg.channel,0);
-        if(stopBot == NULL)
+        if(isRunning(botMsg.channel,&channelList))
         {
-            printf("couldn't create semaphore: %i\n",errno);
-            return -1;
+            botMsg.channel[0] = '/';
+            stopBot = sem_open(botMsg.channel,0);
+            if(stopBot == NULL)
+            {
+                printf("couldn't create semaphore: %i\n",errno);
+                return -1;
+            }
+            sem_post(stopBot);
+            botMsg.channel[0] = ' ';
+            printf("killing%s\n",botMsg.channel);
+            sem_close(stopBot);
         }
-        sem_post(stopBot);
-        botMsg.channel[0] = ' ';
-        printf("killing%s\n",botMsg.channel);
-        sem_close(stopBot);
+        else printf("%s isn't running on this machine.\n",botMsg.channel);
         return 0;
     }
     else//argument provided this should be a channel to join
