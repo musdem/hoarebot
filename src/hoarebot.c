@@ -374,7 +374,7 @@ void listModCmd(cmdInfo_t *commandInfo)
 
 void refreshMods(cmdInfo_t *commandInfo)
 {
-    //unallocate modlist from memory
+    //TODO unallocate modlist from memory
     getMods(commandInfo->botMsg);
 }
 
