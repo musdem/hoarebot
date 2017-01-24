@@ -1,7 +1,11 @@
 ### HOARE BOT
 #      
-The C port of hoarebot.
+To compile hoarebot run make
 #   
-This will be slow going but I should work on it during the summer
+To compile hoarebot with debugging enabled run make debug
 #   
-This is just a test to see if I like running the bot in C rather than pyhton
+Usage: bin/hoarebot "#channelname" to run a bot or bin/hoarebot check running bots
+#   
+The current options for running the bot is -k which will kill the selected bot if it's running and -v which will run the bot in verbose mode
+#   
+This bot will spawn a new daemon every channel you are running the bot for, you can kill any channels bot from the main process as well as check the bots currently running on the machine
