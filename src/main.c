@@ -1,6 +1,131 @@
 #include "hoarebot.h"
 
+void removePound(char *channel, char *fixedChannel);
+void createPID(struct sendMsg *botMsg);
+int runningBots(chnlL_t *CL);
+int isRunning(char *channel, chnlL_t *running);
+int initialize(char *botPass, struct sendMsg *botMsg);
+int run(struct sendMsg *botMsg);
+int cleanup(struct sendMsg *botMsg);
+static void *checkRunning(void *channel);
+
 int running = 1;
+
+int main(int argc, char *argv[])
+{
+    int numRunning,opt,verbose,kill;
+    char botPass[37];
+    chnlL_t channelList, *current;
+    struct sendMsg botMsg;
+    FILE *passFile;
+    verbose = 0;
+    kill = 0;
+    passFile = fopen("pass","r");
+    if(!passFile)
+    {
+        printf("IRC oauth file not found.\n");
+        return -1;
+    }
+    fgets(botPass,37,passFile);
+    fclose(passFile);
+    numRunning = runningBots(&channelList);
+    srand(time(NULL));//seed rng with current time
+    while((opt = getopt(argc,argv,"kv")) != -1)
+    {
+        switch(opt)
+        {
+            case 'v':
+                verbose = 1;
+                break;
+            case 'k':
+                kill = 1;
+                break;
+            default:
+                printf("Command usage: hoarebot [-k kill selected bot | -v enable verbose mode] [channel]\n");
+                return -1;
+        }
+    }
+    if(argc == 1)//no arguments were added to the command so list running bots
+    {
+        if(numRunning)
+        {
+            current = &channelList;
+            printf("Current bots running: %i\n",numRunning);
+            while(current != NULL)
+            {
+                printf("Channel: %s\nPID: %i\n", current->name, (int) current->PID);
+                current = current->next;
+            }
+        }
+        else
+        {
+            printf("No bots are currently running.\n");
+        }
+        return 0;
+    }
+    else if(kill)
+    {
+        sem_t *stopBot;
+        strcpy(botMsg.channel,argv[optind]);
+        if(numRunning && isRunning(botMsg.channel,&channelList))
+        {
+            botMsg.channel[0] = '/';
+            stopBot = sem_open(botMsg.channel,0);
+            if(stopBot == NULL)
+            {
+                printf("couldn't create semaphore: %i\n",errno);
+                return -1;
+            }
+            sem_post(stopBot);
+            botMsg.channel[0] = ' ';
+            printf("killing%s\n",botMsg.channel);
+            sem_close(stopBot);
+        }
+        else printf("%s isn't running on this machine.\n",botMsg.channel);
+        return 0;
+    }
+    else//argument provided this should be a channel to join
+    {
+        switch(daemon(1,verbose))
+        {
+            case -1:
+                printf("Daemonizing has failed\n");
+                return -1;
+            case 0:
+                strcpy(botMsg.channel,argv[optind]);
+                break;
+            default:
+                printf("You shouldn't have gotten here...\n");
+                return -1;
+        }
+    }
+    int runThreadStatus;
+    pthread_t runThread;
+    runThreadStatus = pthread_create(&runThread,NULL,checkRunning,botMsg.channel);
+    if(runThreadStatus != 0)
+    {
+        printf("run thread failed: %i\n",errno);
+        return -1;
+    }
+    if(initialize(botPass, &botMsg) != 0)
+    {
+        printf("failed to initialize the bot\n");
+        return -1;
+    }
+    if(run(&botMsg) != 0)
+    {
+        printf("bot run error\n");
+        return -1;
+    }
+    if(cleanup(&botMsg) != 0)
+    {
+        printf("failed to clean up bot\nyou need to manually clean up\n");
+        return -1;
+    }
+    strcpy(botMsg.text,"/me ~rosebud~");
+    chat(&botMsg);
+    return 0;
+}
 
 void removePound(char *channel, char *fixedChannel)
 {
@@ -191,120 +316,4 @@ static void *checkRunning(void *channel)
     running = 0;
     pthread_detach(pthread_self());
     return NULL;
-}
-
-int main(int argc, char *argv[])
-{
-    int numRunning,opt,verbose,kill;
-    char botPass[37];
-    chnlL_t channelList, *current;
-    struct sendMsg botMsg;
-    FILE *passFile;
-    verbose = 0;
-    kill = 0;
-    passFile = fopen("pass","r");
-    if(!passFile)
-    {
-        printf("IRC oauth file not found.\n");
-        return -1;
-    }
-    fgets(botPass,37,passFile);
-    fclose(passFile);
-    numRunning = runningBots(&channelList);
-    srand(time(NULL));//seed rng with current time
-    while((opt = getopt(argc,argv,"kv")) != -1)
-    {
-        switch(opt)
-        {
-            case 'v':
-                verbose = 1;
-                break;
-            case 'k':
-                kill = 1;
-                break;
-            default:
-                printf("Command usage: hoarebot [-k kill selected bot | -v enable verbose mode] [channel]\n");
-                return -1;
-        }
-    }
-    if(argc == 1)//no arguments were added to the command so list running bots
-    {
-        if(numRunning)
-        {
-            current = &channelList;
-            printf("Current bots running: %i\n",numRunning);
-            while(current != NULL)
-            {
-                printf("Channel: %s\nPID: %i\n", current->name, (int) current->PID);
-                current = current->next;
-            }
-        }
-        else
-        {
-            printf("No bots are currently running.\n");
-        }
-        return 0;
-    }
-    else if(kill)
-    {
-        sem_t *stopBot;
-        strcpy(botMsg.channel,argv[optind]);
-        if(numRunning && isRunning(botMsg.channel,&channelList))
-        {
-            botMsg.channel[0] = '/';
-            stopBot = sem_open(botMsg.channel,0);
-            if(stopBot == NULL)
-            {
-                printf("couldn't create semaphore: %i\n",errno);
-                return -1;
-            }
-            sem_post(stopBot);
-            botMsg.channel[0] = ' ';
-            printf("killing%s\n",botMsg.channel);
-            sem_close(stopBot);
-        }
-        else printf("%s isn't running on this machine.\n",botMsg.channel);
-        return 0;
-    }
-    else//argument provided this should be a channel to join
-    {
-        switch(daemon(1,verbose))
-        {
-            case -1:
-                printf("Daemonizing has failed\n");
-                return -1;
-            case 0:
-                strcpy(botMsg.channel,argv[optind]);
-                break;
-            default:
-                printf("You shouldn't have gotten here...\n");
-                return -1;
-        }
-    }
-    int runThreadStatus;
-    pthread_t runThread;
-    runThreadStatus = pthread_create(&runThread,NULL,checkRunning,botMsg.channel);
-    if(runThreadStatus != 0)
-    {
-        printf("run thread failed: %i\n",errno);
-        return -1;
-    }
-    if(initialize(botPass, &botMsg) != 0)
-    {
-        printf("failed to initialize the bot\n");
-        return -1;
-    }
-    if(run(&botMsg) != 0)
-    {
-        printf("bot run error\n");
-        return -1;
-    }
-    if(cleanup(&botMsg) != 0)
-    {
-        printf("failed to clean up bot\nyou need to manually clean up\n");
-        return -1;
-    }
-    strcpy(botMsg.text,"/me ~rosebud~");
-    chat(&botMsg);
-    return 0;
 }
