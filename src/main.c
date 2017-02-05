@@ -86,6 +86,11 @@ int main(int argc, char *argv[])
     }
     else//argument provided this should be a channel to join
     {
+	if(numRunning && isRunning(argv[optind],&channelList))
+	{
+	    printf("%s is already running on this machine!\n",argv[optind]);
+	    return 0;
+	}
         switch(daemon(1,verbose))
         {
             case -1:
