@@ -382,14 +382,14 @@ void ban(cmdInfo_t *commandInfo)
 {
     if(commandInfo->parsedCmd->next)
     {
-        strcpy(commandInfo->botMsg->text,"You forgot the ban name! FailFish");
+        strcpy(commandInfo->botMsg->text,"░░░░░░░░░░░░ ▄████▄░░░░░░░░░░░░░░░░░░░░ ██████▄░░░░░░▄▄▄░░░░░░░░░░ ░███▀▀▀▄▄▄▀▀▀░░░░░░░░░░░░░ ░░░▄▀▀▀▄░░░█▀▀▄░▄▀▀▄░█▄░█░ ░░░▄▄████░░█▀▀▄░█▄▄█░█▀▄█░ ░░░░██████░█▄▄▀░█░░█░█░▀█░ ░░░░░▀▀▀▀░░░░░░░░░░░░░░░░░");
+        chat(commandInfo->botMsg);
+        sprintf(commandInfo->botMsg->text,"/ban %s",commandInfo->parsedCmd->next->arg);
         chat(commandInfo->botMsg);
     }
     else
     {
-        strcpy(commandInfo->botMsg->text,"░░░░░░░░░░░░ ▄████▄░░░░░░░░░░░░░░░░░░░░ ██████▄░░░░░░▄▄▄░░░░░░░░░░ ░███▀▀▀▄▄▄▀▀▀░░░░░░░░░░░░░ ░░░▄▀▀▀▄░░░█▀▀▄░▄▀▀▄░█▄░█░ ░░░▄▄████░░█▀▀▄░█▄▄█░█▀▄█░ ░░░░██████░█▄▄▀░█░░█░█░▀█░ ░░░░░▀▀▀▀░░░░░░░░░░░░░░░░░");
-        chat(commandInfo->botMsg);
-        sprintf(commandInfo->botMsg->text,"/ban %s",commandInfo->parsedCmd->next->arg);
+        strcpy(commandInfo->botMsg->text,"You forgot the ban name! FailFish");
         chat(commandInfo->botMsg);
     }
 }
