@@ -99,10 +99,8 @@ int main(int argc, char *argv[])
                 return -1;
         }
     }
-    int runThreadStatus;
     pthread_t runThread;
-    runThreadStatus = pthread_create(&runThread,NULL,checkRunning,botMsg.channel);
-    if(runThreadStatus != 0)
+    if(pthread_create(&runThread,NULL,checkRunning,botMsg.channel) != 0)
     {
         printf("run thread failed: %i\n",errno);
         return -1;
