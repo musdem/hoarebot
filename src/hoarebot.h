@@ -53,6 +53,7 @@ void getMods(struct sendMsg *botMsg);
 void getSocial();
 int isMod(char *username);
 void parseCommands(char *rawCmd, cmd_t *parsedCmd);
+void freeCommands(cmd_t *parsedCmd);
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg);
 void timeout(int seconds, char *username, struct sendMsg *botMsg);
 void listCmd(cmdInfo_t *commandInfo);

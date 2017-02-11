@@ -155,6 +155,18 @@ void parseCommands(char *rawCmd, cmd_t *parsedCmd)
     current->arg[cmdOffset] = '\0';
 }
 
+void freeCommands(cmd_t *parsedCmd)
+{
+    cmd_t *current;
+    current = parsedCmd;
+    while(parsedCmd != NULL)
+    {
+	while(current != NULL) current = current->next;
+	free(current);
+	current = parsedCmd;
+    }
+}
+
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
 {
     int curCmd;
