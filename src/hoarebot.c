@@ -136,7 +136,9 @@ int isMod(char *username)
 void parseCommands(char *rawCmd, cmd_t *parsedCmd)
 {
     int cmdPos, cmdOffset;
-    cmd_t *current = parsedCmd;
+    cmd_t *current;
+    parsedCmd = malloc(sizeof(cmd_t));
+    current = parsedCmd;
     for(cmdPos = 0, cmdOffset = 0;rawCmd[cmdPos] != '\0';cmdPos++, cmdOffset++)
     {
         if(rawCmd[cmdPos] != ' ')
@@ -157,13 +159,12 @@ void parseCommands(char *rawCmd, cmd_t *parsedCmd)
 
 void freeCommands(cmd_t *parsedCmd)
 {
-    cmd_t *current;
-    current = parsedCmd;
+    cmd_t *tmp;
     while(parsedCmd != NULL)
     {
-	while(current != NULL) current = current->next;
-	free(current);
-	current = parsedCmd;
+        tmp = parsedCmd;
+        parsedCmd = parsedCmd->next;
+        free(tmp);
     }
 }
 
@@ -173,7 +174,6 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     cmdInfo_t commandInfo;
     commandInfo.botMsg = botMsg;
     strcpy(commandInfo.username,chatMsg->username);
-    commandInfo.parsedCmd = malloc(sizeof(cmd_t));
     parseCommands(chatMsg->text,commandInfo.parsedCmd);
     for(curCmd = 0;curCmd < NUM_CMD;curCmd++)
     {
@@ -470,14 +470,13 @@ void raffleDraw(cmdInfo_t *commandInfo)
             }
             sprintf(commandInfo->botMsg->text,"The winner is %s!",current->username);
             chat(commandInfo->botMsg);
-            for(;numEntrants != 0;numEntrants--)//remove all entrys from list
+            while(raffleNames != NULL)//remove all entrys from list
             {
                 current = raffleNames;//reset list
-                while(current->next != NULL) current = current->next;//loop to the end of the list to remove the item
+                raffleNames = raffleNames->next;
                 free(current);
-                current = NULL;
             }
-            raffleNames = NULL;
+            numEntrants = 0;
         }
     }
     else
