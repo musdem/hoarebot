@@ -313,7 +313,6 @@ static void *checkRunning(void *channel)
         running = 0;
         pthread_detach(pthread_self());
     }
-    c[0] = '#';
     sem_wait(stopBot);
     sem_close(stopBot);
     running = 0;

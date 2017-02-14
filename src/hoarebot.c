@@ -408,7 +408,7 @@ void ban(cmdInfo_t *commandInfo)
 
 void updatePasta(cmdInfo_t *commandInfo)
 {
-    if(commandInfo->parsedCmd->next)
+    if(commandInfo->parsedCmd->next == NULL)
     {
         strcpy(commandInfo->botMsg->text,"You forgot the pasta to add! FailFish");
         chat(commandInfo->botMsg);
@@ -421,7 +421,7 @@ void updatePasta(cmdInfo_t *commandInfo)
 
 void removePasta(cmdInfo_t *commandInfo)
 {
-    if(commandInfo->parsedCmd->next)
+    if(commandInfo->parsedCmd->next == NULL)
     {
         strcpy(commandInfo->botMsg->text,"You forgot the pasta to remove! FailFish");
         chat(commandInfo->botMsg);
@@ -488,7 +488,7 @@ void raffleDraw(cmdInfo_t *commandInfo)
 
 void updateHealthy(cmdInfo_t *commandInfo)
 {
-    if(commandInfo->parsedCmd->next)
+    if(commandInfo->parsedCmd->next == NULL)
     {
         strcpy(commandInfo->botMsg->text,"You forgot the lewd to add! FailFish");
         chat(commandInfo->botMsg);
@@ -501,7 +501,7 @@ void updateHealthy(cmdInfo_t *commandInfo)
 
 void removeHealthy(cmdInfo_t *commandInfo)
 {
-    if(commandInfo->parsedCmd->next)
+    if(commandInfo->parsedCmd->next == NULL)
     {
         strcpy(commandInfo->botMsg->text,"You forgot the lewd to remove! FailFish");
         chat(commandInfo->botMsg);
@@ -514,7 +514,7 @@ void removeHealthy(cmdInfo_t *commandInfo)
 
 void updateQuote(cmdInfo_t *commandInfo)
 {
-    if(commandInfo->parsedCmd->next)
+    if(commandInfo->parsedCmd->next == NULL)
     {
         strcpy(commandInfo->botMsg->text,"You forgot the quote to add! FailFish");
         chat(commandInfo->botMsg);
@@ -527,7 +527,7 @@ void updateQuote(cmdInfo_t *commandInfo)
 
 void removeQuote(cmdInfo_t *commandInfo)
 {
-    if(commandInfo->parsedCmd->next)
+    if(commandInfo->parsedCmd->next == NULL)
     {
         strcpy(commandInfo->botMsg->text,"You forgot the quote to remove! FailFish");
         chat(commandInfo->botMsg);
@@ -535,6 +535,42 @@ void removeQuote(cmdInfo_t *commandInfo)
     else
     {
         updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
+    }
+}
+
+void updateSocial(cmdInfo_t *commandInfo)
+{
+    if(commandInfo->parsedCmd->next == NULL)
+    {
+	strcpy(commandInfo->botMsg->text,"You need to format the command !updateSocial {S|F|T|Y|M} name/link");
+	chat(commandInfo->botMsg);
+    }
+    else
+    {
+	int infoLoc = 0;
+	char info[128];
+	FILE *socialFile;
+	cmd_t *curArg;
+	curArg = commandInfo->parsedCmd->next;
+	if(curArg->next == NULL)
+	{
+	    strcpy(commandInfo->botMsg->text,"You need to format the command !updateSocial {S|F|T|Y|M} name/link");
+	    chat(commandInfo->botMsg);
+	}
+	else
+	{
+	    info[infoLoc] = curArg->arg[0];
+	    infoLoc++;
+	    while(curArg->next->arg[infoLoc - 1] != '\0')
+	    {
+		info[infoLoc] = curArg->next->arg[infoLoc - 1];
+		infoLoc++;
+	    }
+	    info[infoLoc] = '\0';
+	    socialFile = fopen("socialInfo","a");
+	    fputs(info,socialFile);
+	    fclose(socialFile);
+	}
     }
 }
 //end of mod chat commands
