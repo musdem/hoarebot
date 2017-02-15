@@ -542,35 +542,35 @@ void updateSocial(cmdInfo_t *commandInfo)
 {
     if(commandInfo->parsedCmd->next == NULL)
     {
-	strcpy(commandInfo->botMsg->text,"You need to format the command !updateSocial {S|F|T|Y|M} name/link");
-	chat(commandInfo->botMsg);
+        strcpy(commandInfo->botMsg->text,"You need to format the command !updateSocial {S|F|T|Y|M} name/link");
+        chat(commandInfo->botMsg);
     }
     else
     {
-	int infoLoc = 0;
-	char info[128];
-	FILE *socialFile;
-	cmd_t *curArg;
-	curArg = commandInfo->parsedCmd->next;
-	if(curArg->next == NULL)
-	{
-	    strcpy(commandInfo->botMsg->text,"You need to format the command !updateSocial {S|F|T|Y|M} name/link");
-	    chat(commandInfo->botMsg);
-	}
-	else
-	{
-	    info[infoLoc] = curArg->arg[0];
-	    infoLoc++;
-	    while(curArg->next->arg[infoLoc - 1] != '\0')
-	    {
-		info[infoLoc] = curArg->next->arg[infoLoc - 1];
-		infoLoc++;
-	    }
-	    info[infoLoc] = '\0';
-	    socialFile = fopen("socialInfo","a");
-	    fputs(info,socialFile);
-	    fclose(socialFile);
-	}
+    	int infoLoc = 0;
+    	char info[128];
+    	FILE *socialFile;
+    	cmd_t *curArg;
+    	curArg = commandInfo->parsedCmd->next;
+    	if(curArg->next == NULL)
+    	{
+    	    strcpy(commandInfo->botMsg->text,"You need to format the command !updateSocial {S|F|T|Y|M} name/link");
+    	    chat(commandInfo->botMsg);
+    	}
+    	else
+    	{
+    	    info[infoLoc] = curArg->arg[0];
+    	    infoLoc++;
+    	    while(curArg->next->arg[infoLoc - 1] != '\0')
+    	    {
+                info[infoLoc] = curArg->next->arg[infoLoc - 1];
+                infoLoc++;
+    	    }
+    	    info[infoLoc] = '\0';
+    	    socialFile = fopen("socialInfo","a");
+    	    fputs(info,socialFile);
+            fclose(socialFile);
+        }
     }
 }
 //end of mod chat commands
