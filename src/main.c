@@ -313,6 +313,7 @@ static void *checkRunning(void *channel)
         running = 0;
         pthread_detach(pthread_self());
     }
+    c[0] = '#';//put pound sign back to let bot connect to IRC
     sem_wait(stopBot);
     sem_close(stopBot);
     running = 0;

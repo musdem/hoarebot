@@ -136,9 +136,7 @@ int isMod(char *username)
 void parseCommands(char *rawCmd, cmd_t *parsedCmd)
 {
     int cmdPos, cmdOffset;
-    cmd_t *current;
-    parsedCmd = malloc(sizeof(cmd_t));
-    current = parsedCmd;
+    cmd_t *current= parsedCmd;
     for(cmdPos = 0, cmdOffset = 0;rawCmd[cmdPos] != '\0';cmdPos++, cmdOffset++)
     {
         if(rawCmd[cmdPos] != ' ')
@@ -173,6 +171,7 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     int curCmd;
     cmdInfo_t commandInfo;
     commandInfo.botMsg = botMsg;
+    commandInfo.parsedCmd = malloc(sizeof(cmd_t));
     strcpy(commandInfo.username,chatMsg->username);
     parseCommands(chatMsg->text,commandInfo.parsedCmd);
     for(curCmd = 0;curCmd < NUM_CMD;curCmd++)
