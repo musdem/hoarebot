@@ -74,7 +74,7 @@ int joinChannel(struct sendMsg *botMsg, char *botPass)//standard way to join IRC
         return -1;
     }
     read(botMsg->irc,buff,BUFSIZ);
-    if(strcmp(buff,":tmi.twitch.tv NOTICE * :Login authentication failed\r\n") != 0)
+    if(strcmp(buff,":tmi.twitch.tv NOTICE * :Login authentication failed\r\n") == 0)
     {
         printf("incorrect oauth in the pass file\n");
         return -1;
