@@ -30,6 +30,7 @@ struct sendMsg
 
 int twitchChatConnect();
 int joinChannel(struct sendMsg *botMsg, char *botPass);
+int leaveChannel(struct sendMsg *botMsg);
 int chat(struct sendMsg *botMsg);
 size_t parseRaw(char *raw, struct getMsg *chatMsg);
 

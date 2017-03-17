@@ -297,6 +297,10 @@ int cleanup(struct sendMsg *botMsg)
         printf("couldn't remove PID file: %i\n",errno);
         return -1;
     }
+    if(leaveChannel(botMsg) == -1)
+    {
+        printf("couldn't part from the server gracefully\n");
+    }
     return 0;
 }
 

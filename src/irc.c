@@ -94,6 +94,19 @@ int joinChannel(struct sendMsg *botMsg, char *botPass)//standard way to join IRC
     return 0;
 }
 
+int leaveChannel(struct sendMsg *botMsg)
+{
+    int size;
+    char buff[BUFSIZ];
+    size = sprintf(buff,"PART %s\r\n", botMsg->channel);
+    if(write(botMsg->irc,buff,size) == -1)
+    {
+        printf("couldn't write PART to server: %i\n",errno);
+        return -1;
+    }
+    return 0;
+}
+
 int chat(struct sendMsg *botMsg)//standard way to send a message to IRC server
 {
     int size;
