@@ -1,7 +1,6 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
-#include <time.h>
 #include "lists.h"
 
 #define NUM_CMD 8
