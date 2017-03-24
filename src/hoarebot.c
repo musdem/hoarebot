@@ -1,575 +1,205 @@
 #include "hoarebot.h"
 
-//bot command variables
-char commands[NUM_CMD][32] = {"!commands","!slots","!pasta","!modspls","!raffle","!social","!healthy","!quote"};
-char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!ban","!updatepasta","!removepasta","!toggleraffle","!raffledraw","!updatehealthy","!removehealthy","!updatequote","!removequote"};
-void (*cmd[NUM_CMD])(cmdInfo_t*) = {&listCmd,&slots,&pasta,&modsPls,&raffle,&social,&healthy,&quote};
-void (*modCmd[NUM_MOD_CMD])(cmdInfo_t*) = {&listModCmd,&refreshMods,&ban,&updatePasta,&removePasta,&toggleRaffle,&raffleDraw,&updateHealthy,&removeHealthy,&updateQuote,&removeQuote};
-//slots variables
-int force = 1;
-char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
-//raffle variables
-int raffleStatus = 0;
-int numEntrants = 0;
-re_t *raffleNames = NULL;
-//list of mods
-ml_t *mods = NULL;
-//social variables
-char socialSetVar = 0;
-char streamerName[256];
-char facebook[256];
-char twitter[256];
-char youtube[256];
-char MAL[256];
+int running = 1;
+static void *checkRunning(void *channel);
 
-void getMods(struct sendMsg *botMsg)
+void removePound(char *channel, char *fixedChannel)
 {
-    int repeat, colonCount, rawPos, curModPos;
-    char rawMod[BUFSIZ];
-    ml_t *current;
-    strcpy(botMsg->text,"/mods");
-    chat(botMsg);
-    repeat = 0;
-    colonCount = 3;
-    rawPos = 0;
-    curModPos = 0;
-    do
+    int i;
+    for(i = 1;channel[i] != '\0';i++)//remove the pound symbol from the channel
     {
-        read(botMsg->irc,rawMod,BUFSIZ);
-        repeat++;
+        fixedChannel[i-1] = channel[i];
     }
-    while(repeat != 100 && strstr(rawMod,"The moderators of this room are: ") == NULL);
-    while(colonCount)//put rawPos at the start of the mod list
-    {
-        if(rawMod[rawPos] == ':') colonCount--;
-        rawPos++;
-    }
-    mods = malloc(sizeof(ml_t));
-    current = mods;
-    current->next = NULL;
-    for(rawPos += 1;rawMod[rawPos] != '\r';rawPos++)
-    {
-        if(rawMod[rawPos] != ',')
-        {
-            current->mod[curModPos] = rawMod[rawPos];
-            curModPos++;
-        }
-        else
-        {
-            current->mod[curModPos] = '\0';
-            current->next = malloc(sizeof(ml_t));
-            current->next->next = NULL;
-            current = current->next;
-            rawPos++;//put rawPos at space in front of next name on list
-            curModPos = 0;
-        }
-    }
-    current->mod[curModPos] = '\0';//end off the last mod in the list
+    fixedChannel[i-1] = '\0';
 }
 
-void getSocial()
+void createPID(struct sendMsg *botMsg)
 {
-    int linePos;
-    char currentLine[256];
-    FILE *socialFile;
-    socialFile = fopen("socialInfo","r");
-    if(socialFile == NULL)
+    char fileData[64];
+    removePound(botMsg->channel,fileData);
+    //create PID file for new bot
+    chdir(PID_DIR);
+    FILE *newPID;
+    newPID = fopen(fileData,"a");
+    sprintf(fileData,"%i",(int) getpid());
+    if(fputs(fileData,newPID) == -1)
     {
-        fclose(fopen("socialInfo","w+"));//create file if it doesn't exist
-        return;
+        printf("Failed to make a PID file.\n");
     }
-    while(fgets(currentLine,256,socialFile))
-    {
-        switch(currentLine[0])
-        {
-            case 'S'://streamer name
-                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
-                {
-                    streamerName[linePos - 1] = currentLine[linePos];
-                }
-                break;
-            case 'F'://facebook link
-                socialSetVar |= FACEBOOK_SET;
-                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
-                {
-                    facebook[linePos - 1] = currentLine[linePos];
-                }
-                break;
-            case 'T'://twitter link
-                socialSetVar |= TWITTER_SET;
-                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
-                {
-                    twitter[linePos - 1] = currentLine[linePos];
-                }
-                break;
-            case 'Y'://youtube link
-                socialSetVar |= YOUTUBE_SET;
-                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
-                {
-                    youtube[linePos - 1] = currentLine[linePos];
-                }
-                break;
-            case 'M'://my anime list link
-                socialSetVar |= MAL_SET;
-                for(linePos = 1;currentLine[linePos] != '\n';linePos++)
-                {
-                    MAL[linePos - 1] = currentLine[linePos];
-                }
-                break;
-            default:
-                break;
-        }
-    }
-    fclose(socialFile);
+    fclose(newPID);
+    chdir("..");//leave PID_DIR
 }
 
-int isMod(char *username)
+int runningBots(chnlL_t *CL)
 {
-    ml_t *current;
-    for(current = mods;current != NULL;current = current->next)
+    int numRunning = 0;
+    char pidStr[64];
+    chnlL_t *current, *previous;
+    DIR *hoarebotPidDir;
+    FILE *pidFile;
+    struct dirent *currentItem;
+    hoarebotPidDir = opendir(PID_DIR);
+    if(hoarebotPidDir)//dir exists so read in running channels
     {
-        if(!strcmp(current->mod,username)) return 1;
+        chdir(PID_DIR);
+        previous = NULL;
+        current = CL;
+        for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))//go over every item in run dir
+        {
+            if(strcmp("..",currentItem->d_name) != 0 && strcmp(".",currentItem->d_name) != 0)//make sure that dir up and cur dir aren't considered a pid
+            {
+                pidFile = fopen(currentItem->d_name,"r");
+                fgets(pidStr,64,pidFile);
+                fclose(pidFile);
+                current->PID = (pid_t) atoi(pidStr);
+                strcpy(current->name,currentItem->d_name);
+                current->next = malloc(sizeof(chnlL_t));
+                current->next->next = NULL;
+                previous = current;
+                current = current->next;
+                numRunning++;
+            }
+        }
+        closedir(hoarebotPidDir);
+        if(previous == NULL)//if there are no bots running set the head to null
+        {
+            CL = NULL;
+        }
+        else//free the last node
+        {
+            free(previous->next);
+            previous->next = NULL;
+        }
+        chdir("..");
+        return numRunning;
+    }
+    else//make hoarebot pid directory and rerun function
+    {
+        mkdir(PID_DIR,0644);
+        return runningBots(CL);
+    }
+}
+
+int isRunning(char *channel, chnlL_t *running)
+{
+    char check[64];
+    chnlL_t *current;
+    removePound(channel,check);
+    current = running;
+    while(current != NULL)
+    {
+        if(!strcmp(current->name,check)) return 1;
+        current = current->next;
     }
     return 0;
 }
 
-void parseCommands(char *rawCmd, cmd_t *parsedCmd)
+int initialize(char *botPass, struct sendMsg *botMsg)
 {
-    int cmdPos, cmdOffset;
-    cmd_t *current= parsedCmd;
-    for(cmdPos = 0, cmdOffset = 0;rawCmd[cmdPos] != '\0';cmdPos++, cmdOffset++)
+    char botDir[64];
+    pthread_t runThread;
+    if(pthread_create(&runThread,NULL,checkRunning,botMsg->channel) != 0)
     {
-        if(rawCmd[cmdPos] != ' ')
-        {
-            current->arg[cmdOffset] = rawCmd[cmdPos];
-        }
-        else
-        {
-            current->arg[cmdOffset] = '\0';
-            cmdOffset = -1;
-            current->next = malloc(sizeof(cmd_t));
-            current = current->next;
-            current->next = NULL;
-        }
+        printf("run thread failed: %i\n",errno);
+        return -1;
     }
-    current->arg[cmdOffset] = '\0';
-}
-
-void freeCommands(cmd_t *parsedCmd)
-{
-    cmd_t *tmp;
-    while(parsedCmd != NULL)
+    botMsg->irc = twitchChatConnect();//the irc socket file descriptor
+    if(botMsg->irc == -1)
     {
-        tmp = parsedCmd;
-        parsedCmd = parsedCmd->next;
-        free(tmp);
+        printf("Couldn't connect to twitch servers.\n");
+        return -1;
     }
-}
-
-void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
-{
-    int curCmd;
-    cmdInfo_t commandInfo;
-    commandInfo.botMsg = botMsg;
-    commandInfo.parsedCmd = malloc(sizeof(cmd_t));
-    strcpy(commandInfo.username,chatMsg->username);
-    parseCommands(chatMsg->text,commandInfo.parsedCmd);
-    for(curCmd = 0;curCmd < NUM_CMD;curCmd++)
+    if(joinChannel(botMsg, botPass) == -1)
     {
-        if(!strcmp(commandInfo.parsedCmd->arg,commands[curCmd]))
+        printf("Couldn't join the channel\n");
+        return -1;
+    }
+    createPID(botMsg);
+    removePound(botMsg->channel,botDir);
+    if(chdir(botDir) != 0)
+    {
+        if(mkdir(botDir,0700) != 0)
         {
-            cmd[curCmd](&commandInfo);
-            return;
+            printf("error making bot directory: %i\n",errno);
+            return -1;
+        }
+        if(chdir(botDir) != 0)
+        {
+            printf("error changing to bot directory (%s): %i\n",botDir,errno);
+            return -1;
         }
     }
-    for(curCmd = 0;curCmd < NUM_MOD_CMD;curCmd++)
+    getMods(botMsg);
+    getSocial();
+    return 0;
+}
+
+int run(struct sendMsg *botMsg)
+{
+    int size;
+    char raw[BUFSIZ];
+    struct getMsg chatMsg;
+    while(running)
     {
-        if(!strcmp(commandInfo.parsedCmd->arg,secretCommands[curCmd]))
+        size = read(botMsg->irc,raw,BUFSIZ);
+        if(strstr(raw,"PING :"))//make sure the bot stays connected
         {
-            if(isMod(chatMsg->username))
+            size = sprintf(raw,"PONG :tmi.twitch.tv\r\n");
+            if(write(botMsg->irc,raw,size) == -1)
             {
-                modCmd[curCmd](&commandInfo);
-            }
-            else
-            {
-                strcpy(botMsg->text,"You aren't a mod! DansGame");
-                chat(botMsg);
-            }
-            return;
-        }
-    }
-    sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);//command isn't in any list
-    chat(botMsg);
-}
-
-void timeout(int seconds, char *username, struct sendMsg *botMsg)
-{
-    sprintf(botMsg->text,"/timeout %s %i",username,seconds);
-    chat(botMsg);
-}
-
-//start of regular chat commands
-void listCmd(cmdInfo_t *commandInfo)
-{
-    int i;
-    for(i = 0;i < NUM_CMD - 1;i++)
-    {
-        strcat(commandInfo->botMsg->text,commands[i]);
-        strcat(commandInfo->botMsg->text,", ");
-    }
-    strcat(commandInfo->botMsg->text,commands[i]);
-    chat(commandInfo->botMsg);
-}
-
-void slots(cmdInfo_t *commandInfo)
-{
-    if((rand() % force) - 10 > WILL_FORCE_3)//crappy PRNG
-    {
-        force = rand() % 9;
-        sprintf(commandInfo->botMsg->text,"%s | %s | %s",emotes[force],emotes[force],emotes[force]);
-        force = 1;
-    }
-    else
-    {
-        sprintf(commandInfo->botMsg->text,"%s | %s | %s",emotes[rand() % 9],emotes[rand() % 9],emotes[rand() % 9]);
-        force++;
-    }
-    chat(commandInfo->botMsg);
-    if(!strcmp(commandInfo->botMsg->text,"Kappa | Kappa | Kappa"))
-    {
-        sprintf(commandInfo->botMsg->text,"Goodbye %s Kappa",commandInfo->username);
-        chat(commandInfo->botMsg);
-        timeout(0,commandInfo->username,commandInfo->botMsg);
-    }
-    else if(!strcmp(commandInfo->botMsg->text,"TriHard | TriHard | TriHard"))
-    {
-        int i, j;
-        int pos = 8;
-        char TH[10] = " TriHard ";
-        strcpy(commandInfo->botMsg->text,"TriHard ");
-        for(i = 0;i < strlen(commandInfo->username);i++)
-        {
-            if(commandInfo->username[i] >= 97)//if the chracter in the username isn't capitalized capitalize it
-            {
-                commandInfo->botMsg->text[pos] = commandInfo->username[i] - 32;
-            }
-            else//if the character is anything else
-            {
-                commandInfo->botMsg->text[pos] = commandInfo->username[i];
-            }
-            pos++;
-            for(j = 0;j < 9;j++)
-            {
-                commandInfo->botMsg->text[pos] = TH[j];
-                pos++;
+                printf("couldn't write PING back server: %i\n",errno);
+                return -1;
             }
         }
-        commandInfo->botMsg->text[pos] = '\0';//terminate string with null character
-        strcat(commandInfo->botMsg->text,"TriHard H TriHard Y TriHard P TriHard E TriHard ! TriHard");
-        chat(commandInfo->botMsg);
-    }
-    else if(!strcmp(commandInfo->botMsg->text,"Kreygasm | Kreygasm | Kreygasm"))
-    {
-        sprintf(commandInfo->botMsg->text,"Kreygasm For later tonight %s https://www.youtube.com/watch?v=P-Vvm7M4Lig Kreygasm",commandInfo->username);
-        chat(commandInfo->botMsg);
-    }
-}
-
-void pasta(cmdInfo_t *commandInfo)
-{
-    getRandomItem(0,commandInfo->botMsg->text);
-    chat(commandInfo->botMsg);
-}
-
-void modsPls(cmdInfo_t *commandInfo)
-{
-    getRandomItem(3,commandInfo->botMsg->text);
-    chat(commandInfo->botMsg);
-}
-
-void raffle(cmdInfo_t *commandInfo)
-{
-    if(raffleStatus)
-    {
-        if(raffleNames == NULL)//if the list of enterants has not been made yet
+        else if(parseRaw(raw,&chatMsg))
         {
-            raffleNames = malloc(sizeof(re_t));
-            strcpy(raffleNames->username,commandInfo->username);
-            raffleNames->next = NULL;
-        }
-        else
-        {
-            re_t *current;
-            for(current = raffleNames;current != NULL;current = current->next)
+            if(chatMsg.text[0] == '!')
             {
-                if(!strcmp(current->username,commandInfo->username))//check if the user has already entered
-                {
-                    sprintf(commandInfo->botMsg->text,"%s, you are already in the draw! FailFish",commandInfo->username);
-                    chat(commandInfo->botMsg);
-                    return;
-                }
+                command(&chatMsg, botMsg);
             }
-            current = malloc(sizeof(re_t));
-            strcpy(current->username,commandInfo->username);
-            current->next = NULL;
-        }
-        sprintf(commandInfo->botMsg->text,"%s has entered the draw.",commandInfo->username);
-        chat(commandInfo->botMsg);
-        numEntrants++;
-    }
-    else
-    {
-        strcpy(commandInfo->botMsg->text,"There is no draw dumbass FailFish");
-        chat(commandInfo->botMsg);
-    }
-}
-
-void social(cmdInfo_t *commandInfo)
-{
-    if(socialSetVar)
-    {
-        char message[512];
-        if(socialSetVar & FACEBOOK_SET)
-        {
-            sprintf(message,"Like %s on facebook at %s ",streamerName,facebook);
-            strcat(commandInfo->botMsg->text,message);
-        }
-        if(socialSetVar & TWITTER_SET)
-        {
-            sprintf(message,"Follow %s on twitter at %s ",streamerName,twitter);
-            strcat(commandInfo->botMsg->text,message);
-        }
-        if(socialSetVar & YOUTUBE_SET)
-        {
-            sprintf(message,"Subscribe to %s on youtube at %s ",streamerName,youtube);
-            strcat(commandInfo->botMsg->text,message);
-        }
-        if(socialSetVar & MAL_SET)
-        {
-            sprintf(message,"Friend %s on MAL at %s ",streamerName,MAL);
-            strcat(commandInfo->botMsg->text,message);
         }
     }
-    else
-    {
-        strcpy(commandInfo->botMsg->text,"No social links BibleThump");
-    }
-    chat(commandInfo->botMsg);
+    return 0;
 }
 
-void healthy(cmdInfo_t *commandInfo)
+int cleanup(struct sendMsg *botMsg)
 {
-    getRandomItem(1,commandInfo->botMsg->text);
-    chat(commandInfo->botMsg);
+    char fileData[64];
+    sprintf(fileData,"../%s",PID_DIR);
+    chdir(fileData);
+    botMsg->channel[0] = '/';
+    sem_unlink(botMsg->channel);
+    botMsg->channel[0] = '#';
+    removePound(botMsg->channel,fileData);
+    if(remove(fileData) != 0)
+    {
+        printf("couldn't remove PID file: %i\n",errno);
+        return -1;
+    }
+    if(leaveChannel(botMsg) == -1)
+    {
+        printf("couldn't part from the server gracefully\n");
+    }
+    return 0;
 }
 
-void quote(cmdInfo_t *commandInfo)
+static void *checkRunning(void *channel)
 {
-    getRandomItem(2,commandInfo->botMsg->text);
-    chat(commandInfo->botMsg);
+    char *c = (char*) channel;
+    sem_t *stopBot;
+    c[0] = '/';
+    sem_unlink(c);
+    stopBot = sem_open(c,(O_CREAT | O_EXCL),0600,0);
+    if(stopBot == NULL)
+    {
+        printf("couldn't create semaphore: %i\n",errno);
+        running = 0;
+        pthread_detach(pthread_self());
+    }
+    c[0] = '#';//put pound sign back to let bot connect to IRC
+    sem_wait(stopBot);
+    sem_close(stopBot);
+    running = 0;
+    pthread_detach(pthread_self());
+    return NULL;
 }
-//end of regular chat commands
-
-//start of mod chat commands
-void listModCmd(cmdInfo_t *commandInfo)
-{
-    int i;
-    for(i = 0;i < NUM_CMD - 1;i++)
-    {
-        strcat(commandInfo->botMsg->text,secretCommands[i]);
-        strcat(commandInfo->botMsg->text,", ");
-    }
-    strcat(commandInfo->botMsg->text,secretCommands[i]);
-    chat(commandInfo->botMsg);
-}
-
-void refreshMods(cmdInfo_t *commandInfo)
-{
-    //TODO unallocate modlist from memory
-    getMods(commandInfo->botMsg);
-}
-
-void ban(cmdInfo_t *commandInfo)
-{
-    if(commandInfo->parsedCmd->next)
-    {
-        strcpy(commandInfo->botMsg->text,"░░░░░░░░░░░░ ▄████▄░░░░░░░░░░░░░░░░░░░░ ██████▄░░░░░░▄▄▄░░░░░░░░░░ ░███▀▀▀▄▄▄▀▀▀░░░░░░░░░░░░░ ░░░▄▀▀▀▄░░░█▀▀▄░▄▀▀▄░█▄░█░ ░░░▄▄████░░█▀▀▄░█▄▄█░█▀▄█░ ░░░░██████░█▄▄▀░█░░█░█░▀█░ ░░░░░▀▀▀▀░░░░░░░░░░░░░░░░░");
-        chat(commandInfo->botMsg);
-        sprintf(commandInfo->botMsg->text,"/ban %s",commandInfo->parsedCmd->next->arg);
-        chat(commandInfo->botMsg);
-    }
-    else
-    {
-        strcpy(commandInfo->botMsg->text,"You forgot the ban name! FailFish");
-        chat(commandInfo->botMsg);
-    }
-}
-
-void updatePasta(cmdInfo_t *commandInfo)
-{
-    if(commandInfo->parsedCmd->next == NULL)
-    {
-        strcpy(commandInfo->botMsg->text,"You forgot the pasta to add! FailFish");
-        chat(commandInfo->botMsg);
-    }
-    else
-    {
-        updateList(commandInfo->parsedCmd->next->arg,0,'w',commandInfo->botMsg);
-    }
-}
-
-void removePasta(cmdInfo_t *commandInfo)
-{
-    if(commandInfo->parsedCmd->next == NULL)
-    {
-        strcpy(commandInfo->botMsg->text,"You forgot the pasta to remove! FailFish");
-        chat(commandInfo->botMsg);
-    }
-    else
-    {
-        updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
-    }
-}
-
-void toggleRaffle(cmdInfo_t *commandInfo)
-{
-    if(raffleStatus)
-    {
-        raffleStatus = 0;
-        strcpy(commandInfo->botMsg->text,"Raffle closed.");
-        chat(commandInfo->botMsg);
-    }
-    else
-    {
-        raffleStatus = 1;
-        strcpy(commandInfo->botMsg->text,"Raffle open!");
-        chat(commandInfo->botMsg);
-    }
-}
-
-void raffleDraw(cmdInfo_t *commandInfo)
-{
-    if(!raffleStatus)
-    {
-        if(numEntrants == 0)
-        {
-            strcpy(commandInfo->botMsg->text,"No one has entered the draw!");
-            chat(commandInfo->botMsg);
-        }
-        else
-        {
-            int winner;
-            re_t *current;
-            current = raffleNames;
-            winner = rand() % numEntrants;
-            while(winner != 0)
-            {
-                current = current->next;
-                winner--;
-            }
-            sprintf(commandInfo->botMsg->text,"The winner is %s!",current->username);
-            chat(commandInfo->botMsg);
-            while(raffleNames != NULL)//remove all entrys from list
-            {
-                current = raffleNames;//reset list
-                raffleNames = raffleNames->next;
-                free(current);
-            }
-            numEntrants = 0;
-        }
-    }
-    else
-    {
-        strcpy(commandInfo->botMsg->text,"The raffle is still on! FailFish");
-        chat(commandInfo->botMsg);
-    }
-}
-
-void updateHealthy(cmdInfo_t *commandInfo)
-{
-    if(commandInfo->parsedCmd->next == NULL)
-    {
-        strcpy(commandInfo->botMsg->text,"You forgot the lewd to add! FailFish");
-        chat(commandInfo->botMsg);
-    }
-    else
-    {
-        updateList(commandInfo->parsedCmd->next->arg,0,'w',commandInfo->botMsg);
-    }
-}
-
-void removeHealthy(cmdInfo_t *commandInfo)
-{
-    if(commandInfo->parsedCmd->next == NULL)
-    {
-        strcpy(commandInfo->botMsg->text,"You forgot the lewd to remove! FailFish");
-        chat(commandInfo->botMsg);
-    }
-    else
-    {
-        updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
-    }
-}
-
-void updateQuote(cmdInfo_t *commandInfo)
-{
-    if(commandInfo->parsedCmd->next == NULL)
-    {
-        strcpy(commandInfo->botMsg->text,"You forgot the quote to add! FailFish");
-        chat(commandInfo->botMsg);
-    }
-    else
-    {
-        updateList(commandInfo->parsedCmd->next->arg,0,'w',commandInfo->botMsg);
-    }
-}
-
-void removeQuote(cmdInfo_t *commandInfo)
-{
-    if(commandInfo->parsedCmd->next == NULL)
-    {
-        strcpy(commandInfo->botMsg->text,"You forgot the quote to remove! FailFish");
-        chat(commandInfo->botMsg);
-    }
-    else
-    {
-        updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
-    }
-}
-
-void updateSocial(cmdInfo_t *commandInfo)
-{
-    if(commandInfo->parsedCmd->next == NULL)
-    {
-        strcpy(commandInfo->botMsg->text,"You need to format the command !updateSocial {S|F|T|Y|M} name/link");
-        chat(commandInfo->botMsg);
-    }
-    else
-    {
-    	int infoLoc = 0;
-    	char info[128];
-    	FILE *socialFile;
-    	cmd_t *curArg;
-    	curArg = commandInfo->parsedCmd->next;
-    	if(curArg->next == NULL)
-    	{
-    	    strcpy(commandInfo->botMsg->text,"You need to format the command !updateSocial {S|F|T|Y|M} name/link");
-    	    chat(commandInfo->botMsg);
-    	}
-    	else
-    	{
-    	    info[infoLoc] = curArg->arg[0];
-    	    infoLoc++;
-    	    while(curArg->next->arg[infoLoc - 1] != '\0')
-    	    {
-                info[infoLoc] = curArg->next->arg[infoLoc - 1];
-                infoLoc++;
-    	    }
-    	    info[infoLoc] = '\0';
-    	    socialFile = fopen("socialInfo","a");
-    	    fputs(info,socialFile);
-            fclose(socialFile);
-        }
-    }
-}
-//end of mod chat commands
