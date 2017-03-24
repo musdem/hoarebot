@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-c -Wall
 CFLAGSDEBUG=-c -Wall -g
 
-all: hoarebot clean
+all: hoarebot
 
 debug: hoarebotDebug
 
