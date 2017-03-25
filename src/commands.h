@@ -49,6 +49,7 @@ typedef struct CommandInfo
 void getMods(struct sendMsg *botMsg);
 void getSocial();
 int isMod(char *username);
+void freeMods();
 void parseCommands(char *rawCmd, cmd_t *parsedCmd);
 void freeCommands(cmd_t *parsedCmd);
 void command(struct getMsg *chatMsg, struct sendMsg *botMsg);

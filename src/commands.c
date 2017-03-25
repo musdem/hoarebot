@@ -67,6 +67,17 @@ void getMods(struct sendMsg *botMsg)
     current->mod[curModPos] = '\0';//end off the last mod in the list
 }
 
+void freeMods()
+{
+    ml_t *tmp;
+    while(mods != NULL)
+    {
+        tmp = mods;
+        mods = mods->next;
+        free(tmp);
+    }
+}
+
 void getSocial()
 {
     int linePos;
@@ -200,6 +211,7 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     }
     sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);//command isn't in any list
     chat(botMsg);
+    freeCommands(commandInfo.parsedCmd);
 }
 
 void timeout(int seconds, char *username, struct sendMsg *botMsg)
@@ -385,7 +397,7 @@ void listModCmd(cmdInfo_t *commandInfo)
 
 void refreshMods(cmdInfo_t *commandInfo)
 {
-    //TODO unallocate modlist from memory
+    freeMods();
     getMods(commandInfo->botMsg);
 }
 
