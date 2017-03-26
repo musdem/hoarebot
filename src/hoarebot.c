@@ -141,21 +141,28 @@ int run(struct sendMsg *botMsg)
     struct getMsg chatMsg;
     while(running)
     {
-        size = read(botMsg->irc,raw,BUFSIZ);
-        if(strstr(raw,"PING :"))//make sure the bot stays connected
+        if(read(botMsg->irc,raw,BUFSIZ) == -1)
         {
-            size = sprintf(raw,"PONG :tmi.twitch.tv\r\n");
-            if(write(botMsg->irc,raw,size) == -1)
-            {
-                printf("couldn't write PING back server: %i\n",errno);
-                return -1;
-            }
+            printf("couldn't read from the server: %i\n",errno);
+            return -1;
         }
-        else if(parseRaw(raw,&chatMsg))
+        else
         {
-            if(chatMsg.text[0] == '!')
+            if(strstr(raw,"PING :"))//make sure the bot stays connected
             {
-                command(&chatMsg, botMsg);
+                size = sprintf(raw,"PONG :tmi.twitch.tv\r\n");
+                if(write(botMsg->irc,raw,size) == -1)
+                {
+                    printf("couldn't write PING back server: %i\n",errno);
+                    return -1;
+                }
+            }
+            else if(parseRaw(raw,&chatMsg))
+            {
+                if(chatMsg.text[0] == '!')
+                {
+                    command(&chatMsg, botMsg);
+                }
             }
         }
     }
