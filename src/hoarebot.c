@@ -1,7 +1,6 @@
 #include "hoarebot.h"
 
 int running = 1;
-static void *checkRunning(void *channel);
 
 void removePound(char *channel, char *fixedChannel)
 {
@@ -92,6 +91,27 @@ int isRunning(char *channel, chnlL_t *running)
         current = current->next;
     }
     return 0;
+}
+
+static void *checkRunning(void *channel)
+{
+    char *c = (char*) channel;
+    sem_t *stopBot;
+    c[0] = '/';
+    sem_unlink(c);
+    stopBot = sem_open(c,(O_CREAT | O_EXCL),0600,0);
+    if(stopBot == NULL)
+    {
+        printf("couldn't create semaphore: %i\n",errno);
+        running = 0;
+        pthread_detach(pthread_self());
+    }
+    c[0] = '#';//put pound sign back to let bot connect to IRC
+    sem_wait(stopBot);
+    sem_close(stopBot);
+    running = 0;
+    pthread_detach(pthread_self());
+    return NULL;
 }
 
 int initialize(char *botPass, struct sendMsg *botMsg)
@@ -188,25 +208,4 @@ int cleanup(struct sendMsg *botMsg)
         printf("couldn't part from the server gracefully\n");
     }
     return 0;
-}
-
-static void *checkRunning(void *channel)
-{
-    char *c = (char*) channel;
-    sem_t *stopBot;
-    c[0] = '/';
-    sem_unlink(c);
-    stopBot = sem_open(c,(O_CREAT | O_EXCL),0600,0);
-    if(stopBot == NULL)
-    {
-        printf("couldn't create semaphore: %i\n",errno);
-        running = 0;
-        pthread_detach(pthread_self());
-    }
-    c[0] = '#';//put pound sign back to let bot connect to IRC
-    sem_wait(stopBot);
-    sem_close(stopBot);
-    running = 0;
-    pthread_detach(pthread_self());
-    return NULL;
 }
