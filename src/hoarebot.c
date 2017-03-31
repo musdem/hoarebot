@@ -40,7 +40,7 @@ int runningBots(chnlL_t *CL)
     hoarebotPidDir = opendir(PID_DIR);
     if(hoarebotPidDir)//dir exists so read in running channels
     {
-        chdir(PID_DIR);
+	chdir(PID_DIR);
         previous = NULL;
         current = CL;
         for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))//go over every item in run dir
@@ -74,7 +74,7 @@ int runningBots(chnlL_t *CL)
     }
     else//make hoarebot pid directory and rerun function
     {
-        mkdir(PID_DIR,0644);
+        mkdir(PID_DIR,0755);
         return runningBots(CL);
     }
 }
@@ -138,7 +138,7 @@ int initialize(char *botPass, struct sendMsg *botMsg)
     removePound(botMsg->channel,botDir);
     if(chdir(botDir) != 0)
     {
-        if(mkdir(botDir,0700) != 0)
+        if(mkdir(botDir,0755) != 0)
         {
             printf("error making bot directory: %i\n",errno);
             return -1;

@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include "commands.h"
 
+#define PID_DIR "run"
+
 void removePound(char *channel, char *fixedChannel);
 void createPID(struct sendMsg *botMsg);
 int runningBots(chnlL_t *CL);

@@ -5,7 +5,6 @@
 
 #define NUM_CMD 8
 #define NUM_MOD_CMD 11
-#define PID_DIR "./run"
 
 #define WILL_FORCE_3 20
 
