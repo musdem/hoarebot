@@ -40,7 +40,7 @@ int runningBots(chnlL_t *CL)
     hoarebotPidDir = opendir(PID_DIR);
     if(hoarebotPidDir)//dir exists so read in running channels
     {
-	chdir(PID_DIR);
+        chdir(PID_DIR);
         previous = NULL;
         current = CL;
         for(currentItem = readdir(hoarebotPidDir);currentItem;currentItem = readdir(hoarebotPidDir))//go over every item in run dir
