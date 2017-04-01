@@ -10,9 +10,14 @@
 typedef struct List
 {
     char type[32];
-    char item[BUFSIZ];
-    struct List *next;
+    struct ListItem *head;
 }list_t;
+
+typedef struct ListItem
+{
+    char item[BUFSIZ];
+    struct ListItem *next;
+}listItem_t;
 
 void populateLists();
 int itemInList(char *listItem, int listType);

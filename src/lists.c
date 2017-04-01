@@ -7,13 +7,12 @@ int numEntry[NUM_LISTS];
 void populateLists()
 {
     int curList = 0;
-    char line[BUFSIZ], newItem;
+    char line[BUFSIZ];
     struct dirent *currentItem;
-    list_t *current;
+    listItem_t *current;
     DIR *hoarebotListDir;
     FILE *listFile;
     hoarebotListDir = opendir(LIST_DIR);
-    newItem = 1;
     if(hoarebotListDir)
     {
         chdir(LIST_DIR);
@@ -22,28 +21,20 @@ void populateLists()
             if(strcmp("..",currentItem->d_name) != 0 && strcmp(".",currentItem->d_name) != 0)//make sure that dir up and cur dir aren't considered a list
             {
                 listFile = fopen(currentItem->d_name,"r");
+                strcpy(lists[curList]->type,currentItem->d_name);
                 lists[curList] = malloc(sizeof(list_t));
-                current = lists[curList];
+                current = lists[curList]->head;
                 numEntry[curList] = 0;
                 while(fgets(line,BUFSIZ,listFile))//read until the end of the file these should have no empty lines
                 {
-                    if(newItem)
-                    {
-                        strcpy(current->type,currentItem->d_name);
-                        newItem = 0;
-                    }
-                    else
-                    {
-                        current->next = malloc(sizeof(list_t));
-                        strcpy(current->next->item,currentItem->d_name);
-                        numEntry[curList]++;
-                        current->next->next = NULL;
-                        current = current->next;
-                    }
+                    current->next = malloc(sizeof(list_t));
+                    strcpy(current->next->item,currentItem->d_name);
+                    numEntry[curList]++;
+                    current->next->next = NULL;
+                    current = current->next;
                 }
                 fclose(listFile);
                 curList++;
-                newItem = 1;
             }
         }
         chdir("..");
@@ -51,7 +42,7 @@ void populateLists()
     }
     else
     {
-        mkdir(LIST_DIR,0700);
+        mkdir(LIST_DIR,0755);
         populateLists();
     }
 }
@@ -60,7 +51,7 @@ void writeList(int listType)
 {
     int listPos;
     struct dirent *currentItem;
-    list_t *current;
+    listItem_t *current;
     DIR *hoarebotListDir;
     FILE *listFile;
     hoarebotListDir = opendir(LIST_DIR);
@@ -71,7 +62,7 @@ void writeList(int listType)
         {
             remove(currentItem->d_name);
             listFile = fopen(currentItem->d_name,"a+");
-            current = lists[listType]->next;
+            current = lists[listType]->head;
             for(listPos = 0;listPos < numEntry[listType];listPos++)
             {
                 fputs(current->item,listFile);
@@ -87,14 +78,11 @@ void writeList(int listType)
 
 int itemInList(char *listItem, int listType)
 {
-    list_t *CL;
-    CL = lists[listType];
+    listItem_t *CL;
+    CL = lists[listType]->head;
     while(CL)
     {
-        if(!strcmp(listItem,CL->item))
-        {
-            return 1;
-        }
+        if(!strcmp(listItem,CL->item)) return 1;
         CL = CL->next;
     }
     return 0;
@@ -102,45 +90,33 @@ int itemInList(char *listItem, int listType)
 
 void addItem(char *listItem, int listType)
 {
-    list_t *CL;
-    CL = lists[listType];
+    listItem_t *CL;
+    CL = lists[listType]->head;
     numEntry[listType]++;
-    while(CL->next)
-    {
-        CL = CL->next;
-    }
-    CL->next = malloc(sizeof(list_t));
-    strcpy(CL->next->item,listItem);
-    CL->next->next = NULL;
+    while(CL) CL = CL->next;
+    CL = malloc(sizeof(list_t));
+    strcpy(CL->item,listItem);
+    CL->next = NULL;
 }
 
 int removeItem(char *listItem, int listType)
 {
-    list_t *CL, *temp;
-    CL = lists[listType];
-    if(!strcmp(listItem,CL->item))//if the first item is the item to remove
+    listItem_t *CL, *temp;
+    CL = lists[listType]->head;
+    if(!strcmp(listItem,CL->item))//first item is the one to remove
     {
-        temp = CL->next;
+        lists[listType]->head = CL->next;
         free(CL);
-        CL = temp;
         numEntry[listType]--;
         return 1;
     }
-    while(CL)
+    while(CL->next)//everything else
     {
         if(!strcmp(listItem,CL->next->item))
         {
-            if(CL->next->next == NULL)//if the last item in the list is the item to remove
-            {
-                free(CL->next);
-                CL->next = NULL;
-            }
-            else//item in the middle of the list
-            {
-                temp = CL->next;
-                CL->next = temp->next;
-                free(temp);
-            }
+            temp = CL->next;
+            CL->next = temp->next;
+            free(temp);
             numEntry[listType]--;
             return 1;
         }
@@ -152,13 +128,10 @@ int removeItem(char *listItem, int listType)
 void getRandomItem(int listType, char *item)
 {
     int i, itemNum;
-    list_t *CL;
+    listItem_t *CL;
     itemNum = rand() % numEntry[listType];
-    CL = lists[listType];
-    for(i = 0;i < itemNum;i++)
-    {
-        CL = CL->next;
-    }
+    CL = lists[listType]->head;
+    for(i = 0;i < itemNum;i++) CL = CL->next;
     strcpy(item,CL->item);
 }
 
