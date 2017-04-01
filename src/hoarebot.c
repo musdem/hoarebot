@@ -186,6 +186,8 @@ int run(struct sendMsg *botMsg)
             }
         }
     }
+    strcpy(botMsg->text,"/me ~rosebud~");
+    chat(botMsg);
     return 0;
 }
 
@@ -203,7 +205,7 @@ int cleanup(struct sendMsg *botMsg)
         printf("couldn't remove PID file: %i\n",errno);
         return -1;
     }
-    if(leaveChannel(botMsg) == -1)
+    if(disconnect(botMsg) == -1)
     {
         printf("couldn't part from the server gracefully\n");
     }

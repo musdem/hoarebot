@@ -94,7 +94,7 @@ int joinChannel(struct sendMsg *botMsg, char *botPass)//standard way to join IRC
     return 0;
 }
 
-int leaveChannel(struct sendMsg *botMsg)
+int disconnect(struct sendMsg *botMsg)
 {
     int size;
     char buff[BUFSIZ];
@@ -104,6 +104,8 @@ int leaveChannel(struct sendMsg *botMsg)
         printf("couldn't write PART to server: %i\n",errno);
         return -1;
     }
+    shutdown(botMsg->irc,SHUT_RDWR);
+    close(botMsg->irc);
     return 0;
 }
 

@@ -108,7 +108,5 @@ int main(int argc, char *argv[])
         printf("failed to clean up bot\nyou need to manually clean up\n");
         return -1;
     }
-    strcpy(botMsg.text,"/me ~rosebud~");
-    chat(&botMsg);
     return 0;
 }
