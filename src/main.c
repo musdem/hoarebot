@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
             printf("%s is already running on this machine!\n",argv[optind]);
             return 0;
         }
+        strcpy(botMsg.channel,argv[optind]);
         if(debug)
         {
             printf("running in debug mode, this will disable daemonizing\nyou should probably run this in gdb\n");
@@ -96,7 +97,6 @@ int main(int argc, char *argv[])
                     printf("Daemonizing has failed\n");
                     return -1;
                 case 0:
-                    strcpy(botMsg.channel,argv[optind]);
                     break;
                 default:
                     printf("You shouldn't have gotten here...\n");
