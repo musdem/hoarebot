@@ -2,13 +2,14 @@
 
 int main(int argc, char *argv[])
 {
-    int numRunning,opt,verbose,kill;
+    int numRunning, opt, verbose, kill, debug;
     char botPass[37];
     chnlL_t channelList, *current;
     struct sendMsg botMsg;
     FILE *passFile;
     verbose = 0;
     kill = 0;
+    debug = 0;
     passFile = fopen("pass","r");
     if(!passFile)
     {
@@ -19,7 +20,7 @@ int main(int argc, char *argv[])
     fclose(passFile);
     numRunning = runningBots(&channelList);
     srand(time(NULL));//seed rng with current time
-    while((opt = getopt(argc,argv,"kv")) != -1)
+    while((opt = getopt(argc,argv,"kvd")) != -1)
     {
         switch(opt)
         {
@@ -29,8 +30,11 @@ int main(int argc, char *argv[])
             case 'k':
                 kill = 1;
                 break;
+            case 'd':
+                debug = 1;
+                break;
             default:
-                printf("Command usage: hoarebot [-k kill selected bot | -v enable verbose mode] [channel]\n");
+                printf("Command usage: hoarebot [-k kill selected bot | -v enable verbose mode | -d enable debug mode] [channel]\n");
                 return -1;
         }
     }
@@ -80,17 +84,24 @@ int main(int argc, char *argv[])
             printf("%s is already running on this machine!\n",argv[optind]);
             return 0;
         }
-        switch(daemon(1,verbose))
+        if(debug)
         {
-            case -1:
-                printf("Daemonizing has failed\n");
-                return -1;
-            case 0:
-                strcpy(botMsg.channel,argv[optind]);
-                break;
-            default:
-                printf("You shouldn't have gotten here...\n");
-                return -1;
+            printf("running in debug mode, this will disable daemonizing\nyou should probably run this in gdb\n");
+        }
+        else
+        {
+            switch(daemon(1,verbose))
+            {
+                case -1:
+                    printf("Daemonizing has failed\n");
+                    return -1;
+                case 0:
+                    strcpy(botMsg.channel,argv[optind]);
+                    break;
+                default:
+                    printf("You shouldn't have gotten here...\n");
+                    return -1;
+            }
         }
     }
     if(initialize(botPass, &botMsg) != 0)
