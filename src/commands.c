@@ -158,6 +158,7 @@ void parseCommands(char *rawCmd, cmd_t *parsedCmd)
         {
             current->arg[cmdOffset] = '\0';
             cmdOffset = -1;
+            while(rawCmd[cmdPos + 1] == ' ') cmdPos++;//ensure that rawCmd is at the last space before a new arg
             current->next = malloc(sizeof(cmd_t));
             current = current->next;
             current->next = NULL;
