@@ -21,16 +21,16 @@ void populateLists()
             if(strcmp("..",currentItem->d_name) != 0 && strcmp(".",currentItem->d_name) != 0)//make sure that dir up and cur dir aren't considered a list
             {
                 listFile = fopen(currentItem->d_name,"r");
-                strcpy(lists[curList]->type,currentItem->d_name);
                 lists[curList] = malloc(sizeof(list_t));
+                strcpy(lists[curList]->type,currentItem->d_name);
                 current = lists[curList]->head;
                 numEntry[curList] = 0;
                 while(fgets(line,BUFSIZ,listFile))//read until the end of the file these should have no empty lines
                 {
-                    current->next = malloc(sizeof(list_t));
-                    strcpy(current->next->item,currentItem->d_name);
+                    current = malloc(sizeof(listItem_t));
+                    strcpy(current->item,currentItem->d_name);
                     numEntry[curList]++;
-                    current->next->next = NULL;
+                    current->next = NULL;
                     current = current->next;
                 }
                 fclose(listFile);

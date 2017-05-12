@@ -387,7 +387,7 @@ void quote(cmdInfo_t *commandInfo)
 void listModCmd(cmdInfo_t *commandInfo)
 {
     int i;
-    for(i = 0;i < NUM_CMD - 1;i++)
+    for(i = 0;i < NUM_MOD_CMD - 1;i++)
     {
         strcat(commandInfo->botMsg->text,secretCommands[i]);
         strcat(commandInfo->botMsg->text,", ");

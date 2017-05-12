@@ -151,6 +151,7 @@ int initialize(char *botPass, struct sendMsg *botMsg)
     }
     getMods(botMsg);
     getSocial();
+    populateLists();
     return 0;
 }
 
