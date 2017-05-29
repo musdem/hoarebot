@@ -41,7 +41,7 @@ typedef struct ModList
 typedef struct CommandInfo
 {
     struct sendMsg *botMsg;
-    char *username;
+    char username[128];
     cmd_t *parsedCmd;
 }cmdInfo_t;
 

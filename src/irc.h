@@ -25,7 +25,7 @@ struct sendMsg
 {
     int irc;
     char channel[128];
-    char text[BUFSIZ];
+    char text[4096];
 };
 
 int twitchChatConnect();
