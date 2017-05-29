@@ -225,7 +225,7 @@ void timeout(int seconds, char *username, struct sendMsg *botMsg)
 void listCmd(cmdInfo_t *commandInfo)
 {
     int i;
-    for(i = 0;i <= NUM_CMD;i++)
+    for(i = 0;i < NUM_CMD - 1;i++)//one less than NUM_CMD in order to format nicely
     {
         strcat(commandInfo->botMsg->text,commands[i]);
         strcat(commandInfo->botMsg->text,", ");
@@ -387,7 +387,7 @@ void quote(cmdInfo_t *commandInfo)
 void listModCmd(cmdInfo_t *commandInfo)
 {
     int i;
-    for(i = 0;i <= NUM_MOD_CMD;i++)
+    for(i = 0;i < NUM_MOD_CMD - 1;i++)//one less than NUM_MOD_CMD in order to format nicely
     {
         strcat(commandInfo->botMsg->text,secretCommands[i]);
         strcat(commandInfo->botMsg->text,", ");
