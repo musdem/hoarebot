@@ -192,6 +192,7 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
         {
             cmd[curCmd](&commandInfo);
             return;
+            freeCommands(commandInfo.parsedCmd);
         }
     }
     for(curCmd = 0;curCmd < NUM_MOD_CMD;curCmd++)
@@ -208,6 +209,7 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
                 chat(botMsg);
             }
             return;
+            freeCommands(commandInfo.parsedCmd);
         }
     }
     sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);//command isn't in any list
@@ -400,6 +402,8 @@ void refreshMods(cmdInfo_t *commandInfo)
 {
     freeMods();
     getMods(commandInfo->botMsg);
+    strcpy(commandInfo->botMsg->text,"Mods have been refreshed");
+    chat(commandInfo->botMsg);
 }
 
 void ban(cmdInfo_t *commandInfo)
