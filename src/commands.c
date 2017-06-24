@@ -147,7 +147,8 @@ int isMod(char *username)
 void parseCommands(char *rawCmd, cmd_t *parsedCmd)
 {
     int cmdPos, cmdOffset;
-    cmd_t *current= parsedCmd;
+    cmd_t *current = parsedCmd;
+    current->next = NULL;//make sure that next is nullified on one argument commands
     for(cmdPos = 0, cmdOffset = 0;rawCmd[cmdPos] != '\0';cmdPos++, cmdOffset++)
     {
         if(rawCmd[cmdPos] != ' ')
@@ -191,8 +192,8 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
         if(!strcmp(commandInfo.parsedCmd->arg,commands[curCmd]))
         {
             cmd[curCmd](&commandInfo);
-            return;
             freeCommands(commandInfo.parsedCmd);
+            return;
         }
     }
     for(curCmd = 0;curCmd < NUM_MOD_CMD;curCmd++)
@@ -208,8 +209,8 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
                 strcpy(botMsg->text,"You aren't a mod! DansGame");
                 chat(botMsg);
             }
-            return;
             freeCommands(commandInfo.parsedCmd);
+            return;
         }
     }
     sprintf(botMsg->text,"%s is not a command; type !commands to get a list.",chatMsg->text);//command isn't in any list
