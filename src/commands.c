@@ -265,7 +265,7 @@ void slots(cmdInfo_t *commandInfo)
         strcpy(commandInfo->botMsg->text,"TriHard ");
         for(i = 0;i < strlen(commandInfo->username);i++)
         {
-            if(commandInfo->username[i] >= 97)//if the chracter in the username isn't capitalized capitalize it
+            if(commandInfo->username[i] >= 97)//if the character in the username isn't capitalized capitalize it
             {
                 commandInfo->botMsg->text[pos] = commandInfo->username[i] - 32;
             }
