@@ -1,10 +1,11 @@
 #ifndef COMMANDS_H
 #define COMMANDS_H
 
+#include <semaphore.h>
 #include "lists.h"
 
 #define NUM_CMD 8
-#define NUM_MOD_CMD 11
+#define NUM_MOD_CMD 12
 
 #define WILL_FORCE_3 20
 
@@ -63,6 +64,7 @@ void healthy(cmdInfo_t *commandInfo);
 void quote(cmdInfo_t *commandInfo);
 void listModCmd(cmdInfo_t *commandInfo);
 void refreshMods(cmdInfo_t *commandInfo);
+void kill(cmdInfo_t *commandInfo);
 void ban(cmdInfo_t *commandInfo);
 void updatePasta(cmdInfo_t *commandInfo);
 void removePasta(cmdInfo_t *commandInfo);

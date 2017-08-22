@@ -1,7 +1,6 @@
 #ifndef HOAREBOT_H
 #define HOAREBOT_H
 
-#include <semaphore.h>
 #include <pthread.h>
 #include "commands.h"
 

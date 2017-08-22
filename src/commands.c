@@ -2,9 +2,9 @@
 
 //bot command variables
 char commands[NUM_CMD][32] = {"!commands","!slots","!pasta","!modspls","!raffle","!social","!healthy","!quote"};
-char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!ban","!updatepasta","!removepasta","!toggleraffle","!raffledraw","!updatehealthy","!removehealthy","!updatequote","!removequote"};
+char secretCommands[NUM_MOD_CMD][32] = {"!modcommands","!refreshmods","!kill","!ban","!updatepasta","!removepasta","!toggleraffle","!raffledraw","!updatehealthy","!removehealthy","!updatequote","!removequote"};
 void (*cmd[NUM_CMD])(cmdInfo_t*) = {&listCmd,&slots,&pasta,&modsPls,&raffle,&social,&healthy,&quote};
-void (*modCmd[NUM_MOD_CMD])(cmdInfo_t*) = {&listModCmd,&refreshMods,&ban,&updatePasta,&removePasta,&toggleRaffle,&raffleDraw,&updateHealthy,&removeHealthy,&updateQuote,&removeQuote};
+void (*modCmd[NUM_MOD_CMD])(cmdInfo_t*) = {&listModCmd,&refreshMods,&kill,&ban,&updatePasta,&removePasta,&toggleRaffle,&raffleDraw,&updateHealthy,&removeHealthy,&updateQuote,&removeQuote};
 //slots variables
 int force = 1;
 char emotes[9][16] = {"Kappa","KappaPride","EleGiggle","BibleThump","PogChamp","TriHard","CoolCat","WutFace","Kreygasm"};
@@ -405,6 +405,24 @@ void refreshMods(cmdInfo_t *commandInfo)
     getMods(commandInfo->botMsg);
     strcpy(commandInfo->botMsg->text,"Mods have been refreshed");
     chat(commandInfo->botMsg);
+}
+
+void kill(cmdInfo_t *commandInfo)
+{
+    sem_t *stopBot;
+    commandInfo->botMsg->channel[0] = '/';
+    stopBot = sem_open(commandInfo->botMsg->channel,0);
+    if(stopBot == NULL)
+    {
+        strcpy(commandInfo->botMsg->text,"Couldn't create semaphore");
+        chat(commandInfo->botMsg);
+        return;
+    }
+    sem_post(stopBot);
+    commandInfo->botMsg->channel[0] = '#';
+    strcpy(commandInfo->botMsg->text,"Killing self on next message");
+    chat(commandInfo->botMsg);
+    sem_close(stopBot);
 }
 
 void ban(cmdInfo_t *commandInfo)
