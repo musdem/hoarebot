@@ -420,7 +420,7 @@ void kill(cmdInfo_t *commandInfo)
     }
     sem_post(stopBot);
     commandInfo->botMsg->channel[0] = '#';
-    strcpy(commandInfo->botMsg->text,"Killing self on next message");
+    strcpy(commandInfo->botMsg->text,"Killing self");
     chat(commandInfo->botMsg);
     sem_close(stopBot);
 }
