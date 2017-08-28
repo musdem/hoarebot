@@ -6,6 +6,10 @@
 
 #define NUM_LISTS 4
 #define LIST_DIR "./lists"
+#define HEALTHY 0
+#define MODSPLS 1
+#define PASTA 2
+#define QUOTE 3
 
 typedef struct List
 {

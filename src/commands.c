@@ -293,13 +293,13 @@ void slots(cmdInfo_t *commandInfo)
 
 void pasta(cmdInfo_t *commandInfo)
 {
-    getRandomItem(0,commandInfo->botMsg->text);
+    getRandomItem(PASTA,commandInfo->botMsg->text);
     chat(commandInfo->botMsg);
 }
 
 void modsPls(cmdInfo_t *commandInfo)
 {
-    getRandomItem(3,commandInfo->botMsg->text);
+    getRandomItem(MODSPLS,commandInfo->botMsg->text);
     chat(commandInfo->botMsg);
 }
 
@@ -375,13 +375,13 @@ void social(cmdInfo_t *commandInfo)
 
 void healthy(cmdInfo_t *commandInfo)
 {
-    getRandomItem(1,commandInfo->botMsg->text);
+    getRandomItem(HEALTHY,commandInfo->botMsg->text);
     chat(commandInfo->botMsg);
 }
 
 void quote(cmdInfo_t *commandInfo)
 {
-    getRandomItem(2,commandInfo->botMsg->text);
+    getRandomItem(QUOTE,commandInfo->botMsg->text);
     chat(commandInfo->botMsg);
 }
 //end of regular chat commands
@@ -450,7 +450,7 @@ void updatePasta(cmdInfo_t *commandInfo)
     }
     else
     {
-        updateList(commandInfo->parsedCmd->next->arg,0,'w',commandInfo->botMsg);
+        updateList(commandInfo->parsedCmd->next->arg,PASTA,'w',commandInfo->botMsg);
     }
 }
 
@@ -463,7 +463,7 @@ void removePasta(cmdInfo_t *commandInfo)
     }
     else
     {
-        updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
+        updateList(commandInfo->parsedCmd->next->arg,PASTA,'d',commandInfo->botMsg);
     }
 }
 
@@ -530,7 +530,7 @@ void updateHealthy(cmdInfo_t *commandInfo)
     }
     else
     {
-        updateList(commandInfo->parsedCmd->next->arg,0,'w',commandInfo->botMsg);
+        updateList(commandInfo->parsedCmd->next->arg,HEALTHY,'w',commandInfo->botMsg);
     }
 }
 
@@ -543,7 +543,7 @@ void removeHealthy(cmdInfo_t *commandInfo)
     }
     else
     {
-        updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
+        updateList(commandInfo->parsedCmd->next->arg,HEALTHY,'d',commandInfo->botMsg);
     }
 }
 
@@ -556,7 +556,7 @@ void updateQuote(cmdInfo_t *commandInfo)
     }
     else
     {
-        updateList(commandInfo->parsedCmd->next->arg,0,'w',commandInfo->botMsg);
+        updateList(commandInfo->parsedCmd->next->arg,QUOTE,'w',commandInfo->botMsg);
     }
 }
 
@@ -569,7 +569,7 @@ void removeQuote(cmdInfo_t *commandInfo)
     }
     else
     {
-        updateList(commandInfo->parsedCmd->next->arg,0,'d',commandInfo->botMsg);
+        updateList(commandInfo->parsedCmd->next->arg,QUOTE,'d',commandInfo->botMsg);
     }
 }
 
