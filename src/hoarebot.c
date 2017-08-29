@@ -12,6 +12,17 @@ void removePound(char *channel, char *fixedChannel)
     fixedChannel[i-1] = '\0';
 }
 
+void returnPound(char *channel, char *fixedChannel)
+{
+    int i;
+    fixedChannel[0] = '#';
+    for(i = 0;channel[i] != '\0';i++)//return the pound symbol from the channel
+    {
+        fixedChannel[i+1] = channel[i];
+    }
+    fixedChannel[i+1] = '\0';
+}
+
 void createPID(struct sendMsg *botMsg)
 {
     char fileData[64];
@@ -112,6 +123,21 @@ static void *checkRunning(void *channel)
     running = 0;
     pthread_detach(pthread_self());
     return NULL;
+}
+
+void killBot(char *channel)
+{
+    sem_t *stopBot;
+    channel[0] = '/';
+    stopBot = sem_open(channel,0);
+    if(stopBot == NULL)
+    {
+        printf("couldn't create semaphore: %i\n",errno);
+    }
+    sem_post(stopBot);
+    channel[0] = ' ';
+    printf("killing%s\n",channel);
+    sem_close(stopBot);
 }
 
 int initialize(char *botPass, struct sendMsg *botMsg)

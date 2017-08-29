@@ -58,23 +58,26 @@ int main(int argc, char *argv[])
     }
     else if(kill)
     {
-        sem_t *stopBot;
         strcpy(botMsg.channel,argv[optind]);
-        if(numRunning && isRunning(botMsg.channel,&channelList))
+        if(!strcmp("all",botMsg.channel))
         {
-            botMsg.channel[0] = '/';
-            stopBot = sem_open(botMsg.channel,0);
-            if(stopBot == NULL)
+            printf("Killing all bots\n");
+            current = &channelList;
+            while(current != NULL)
             {
-                printf("couldn't create semaphore: %i\n",errno);
-                return -1;
+                returnPound(current->name,botMsg.channel);
+                killBot(botMsg.channel);
+                current = current->next;
             }
-            sem_post(stopBot);
-            botMsg.channel[0] = ' ';
-            printf("killing%s\n",botMsg.channel);
-            sem_close(stopBot);
         }
-        else printf("%s isn't running on this machine.\n",botMsg.channel);
+        else
+        {
+            if(numRunning && isRunning(botMsg.channel,&channelList))
+            {
+                killBot(botMsg.channel);
+            }
+            else printf("%s isn't running on this machine.\n",botMsg.channel);
+        }
         return 0;
     }
     else//argument provided this should be a channel to join
