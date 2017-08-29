@@ -218,10 +218,10 @@ void command(struct getMsg *chatMsg, struct sendMsg *botMsg)
     freeCommands(commandInfo.parsedCmd);
 }
 
-void timeout(int seconds, char *username, struct sendMsg *botMsg)
+void timeout(int seconds, cmdInfo_t *commandInfo)
 {
-    sprintf(botMsg->text,"/timeout %s %i",username,seconds);
-    chat(botMsg);
+    sprintf(commandInfo->botMsg->text,"/timeout %s %i",commandInfo->username,seconds);
+    chat(commandInfo->botMsg);
 }
 
 //start of regular chat commands
@@ -255,7 +255,7 @@ void slots(cmdInfo_t *commandInfo)
     {
         sprintf(commandInfo->botMsg->text,"Goodbye %s Kappa",commandInfo->username);
         chat(commandInfo->botMsg);
-        timeout(0,commandInfo->username,commandInfo->botMsg);
+        timeout(0,commandInfo);
     }
     else if(!strcmp(commandInfo->botMsg->text,"TriHard | TriHard | TriHard"))
     {
