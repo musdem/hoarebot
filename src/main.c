@@ -58,25 +58,32 @@ int main(int argc, char *argv[])
     }
     else if(kill)
     {
-        strcpy(botMsg.channel,argv[optind]);
-        if(!strcmp("all",botMsg.channel))
+        if(numRunning)
         {
-            printf("Killing all bots\n");
-            current = &channelList;
-            while(current != NULL)
+            strcpy(botMsg.channel,argv[optind]);
+            if(!strcmp("all",botMsg.channel))
             {
-                returnPound(current->name,botMsg.channel);
-                killBot(botMsg.channel);
-                current = current->next;
+                printf("Killing all bots\n");
+                current = &channelList;
+                while(current != NULL)
+                {
+                    returnPound(current->name,botMsg.channel);
+                    killBot(botMsg.channel);
+                    current = current->next;
+                }
+            }
+            else
+            {
+                if(isRunning(botMsg.channel,&channelList))
+                {
+                    killBot(botMsg.channel);
+                }
+                else printf("%s isn't running on this machine.\n",botMsg.channel);
             }
         }
         else
         {
-            if(numRunning && isRunning(botMsg.channel,&channelList))
-            {
-                killBot(botMsg.channel);
-            }
-            else printf("%s isn't running on this machine.\n",botMsg.channel);
+            printf("There are no bots running.\n");
         }
         return 0;
     }
