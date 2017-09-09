@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
         strcpy(botMsg.channel,argv[optind]);
         if(debug)
         {
-            printf("running in debug mode, this will disable daemonizing\nyou should probably run this in gdb\n");
+            printf("running in debug mode, this will disable daemonizing\nrun this in gdb to access debug info\n");
         }
         else
         {
