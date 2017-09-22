@@ -86,7 +86,15 @@ void getSocial()
     socialFile = fopen("socialInfo","r");
     if(socialFile == NULL)
     {
-        fclose(fopen("socialInfo","w+"));//create file if it doesn't exist
+        FILE *socialFileTemplate;
+        socialFileTemplate = fopen("../templates/socialTemplate","r");
+        socialFile = fopen("socialInfo","w+");//create file if it doesn't exist
+        while(fgets(currentLine,256,socialFileTemplate))
+        {
+            fputs(currentLine,socialFile);//create social file for new channel based off template
+        }
+        fclose(socialFileTemplate);
+        fclose(socialFile);
         return;
     }
     while(fgets(currentLine,256,socialFile))
