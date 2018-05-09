@@ -16,11 +16,11 @@ re_t *raffleNames = NULL;
 ml_t *mods = NULL;
 //social variables
 char socialSetVar = 0;
-char streamerName[256];
-char facebook[256];
-char twitter[256];
-char youtube[256];
-char MAL[256];
+char streamerName[128];
+char facebook[128];
+char twitter[128];
+char youtube[128];
+char MAL[128];
 
 void getMods(struct sendMsg *botMsg)
 {
