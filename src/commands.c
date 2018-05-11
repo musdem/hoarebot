@@ -38,7 +38,7 @@ void getMods(struct sendMsg *botMsg)
         read(botMsg->irc,rawMod,BUFSIZ);
         repeat++;
     }
-    while(repeat != 100 && strstr(rawMod,"The moderators of this room are: ") == NULL);
+    while(repeat != 100 && strstr(rawMod,"The moderators of this channel are: ") == NULL);
     while(colonCount)//put rawPos at the start of the mod list
     {
         if(rawMod[rawPos] == ':') colonCount--;
