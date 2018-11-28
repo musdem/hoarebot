@@ -1,8 +1,8 @@
 #include "lists.h"
 
 //list variables
-list_t *lists[NUM_LISTS];
-int numEntry[NUM_LISTS];
+list_t *lists[NUM_LISTS] = {NULL,NULL,NULL,NULL};
+int numEntry[NUM_LISTS] = {0,0,0,0};
 
 void populateLists()
 {
@@ -127,6 +127,11 @@ int removeItem(char *listItem, int listType)
 
 void getRandomItem(int listType, char *item)
 {
+    if(!numEntry[listType])
+    {
+        strcpy(item,"Nothing here BibleThump");
+        return;
+    }
     int i, itemNum;
     listItem_t *CL;
     itemNum = rand() % numEntry[listType];
@@ -137,7 +142,7 @@ void getRandomItem(int listType, char *item)
 
 void updateList(char *listItem, int listType, char mode, struct sendMsg *botMsg)
 {
-	if(mode == 'w')
+    if(mode == 'w')
     {
         if(!itemInList(listItem,listType))
         {
