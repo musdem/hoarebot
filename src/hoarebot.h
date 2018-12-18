@@ -2,6 +2,7 @@
 #define HOAREBOT_H
 
 #include <pthread.h>
+#include <syslog.h>
 #include "commands.h"
 
 #define PID_DIR "run"

@@ -1,6 +1,7 @@
 #include "hoarebot.h"
 
 int running = 1;
+char ident[256];
 
 void removePound(char *channel, char *fixedChannel)
 {
@@ -144,22 +145,27 @@ int initialize(char *botPass, struct sendMsg *botMsg)
 {
     char botDir[64];
     pthread_t runThread;
+    sprintf(ident, "[channel %s]", botMsg->channel);
+    openlog(ident, LOG_NDELAY, LOG_DAEMON);
     if(pthread_create(&runThread,NULL,checkRunning,botMsg->channel) != 0)
     {
         printf("run thread failed: %i\n",errno);
         return -1;
     }
+    syslog(LOG_INFO, "created exit check thread");
     botMsg->irc = twitchChatConnect();//the irc socket file descriptor
     if(botMsg->irc == -1)
     {
         printf("Couldn't connect to twitch servers.\n");
         return -1;
     }
+    syslog(LOG_INFO, "connected to twitch IRC server");
     if(joinChannel(botMsg, botPass) == -1)
     {
         printf("Couldn't join the channel\n");
         return -1;
     }
+    syslog(LOG_INFO, "joined channel %s", botMsg->channel);
     createPID(botMsg);
     removePound(botMsg->channel,botDir);
     if(chdir(botDir) != 0)
@@ -176,8 +182,11 @@ int initialize(char *botPass, struct sendMsg *botMsg)
         }
     }
     getMods(botMsg);
+    syslog(LOG_INFO, "added mods to mod list");
     getSocial();
+    syslog(LOG_INFO, "generated social message");
     populateLists();
+    syslog(LOG_INFO, "generated lists");
     return 0;
 }
 
@@ -209,12 +218,14 @@ int run(struct sendMsg *botMsg)
                 if(chatMsg.text[0] == '!')
                 {
                     command(&chatMsg, botMsg);
+                    syslog(LOG_INFO, "ran command from user: %s using message %s", chatMsg.username, chatMsg.text);
                 }
             }
         }
     }
     strcpy(botMsg->text,"/me ~rosebud~");
     chat(botMsg);
+    syslog(LOG_INFO, "sent exit message");
     return 0;
 }
 
@@ -225,6 +236,7 @@ int cleanup(struct sendMsg *botMsg)
     chdir(fileData);
     botMsg->channel[0] = '/';
     sem_unlink(botMsg->channel);
+    syslog(LOG_INFO, "unlinked semaphore");
     botMsg->channel[0] = '#';
     removePound(botMsg->channel,fileData);
     if(remove(fileData) != 0)
@@ -232,9 +244,12 @@ int cleanup(struct sendMsg *botMsg)
         printf("couldn't remove PID file: %i\n",errno);
         return -1;
     }
+    syslog(LOG_INFO, "removed PID file");
     if(disconnect(botMsg) == -1)
     {
         printf("couldn't part from the server gracefully\n");
     }
+    syslog(LOG_INFO, "parted from server gracefully");
+    closelog();
     return 0;
 }
