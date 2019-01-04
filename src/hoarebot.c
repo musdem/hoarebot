@@ -210,6 +210,7 @@ int run(struct sendMsg *botMsg)
                 if(write(botMsg->irc,raw,size) == -1)
                 {
                     printf("couldn't write PING back server: %i\n",errno);
+                    syslog(LOG_ERR, "couldn't write PING back to server");
                     return -1;
                 }
             }
