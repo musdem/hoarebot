@@ -192,14 +192,21 @@ int initialize(char *botPass, struct sendMsg *botMsg)
 
 int run(struct sendMsg *botMsg)
 {
-    int size;
+    int size, readStatus;
     char raw[BUFSIZ];
     struct getMsg chatMsg;
     while(running)
     {
-        if(read(botMsg->irc,raw,BUFSIZ) == -1)
+        readStatus = read(botMsg->irc,raw,BUFSIZ);
+        if(readStatus == -1)
         {
             printf("couldn't read from the server: %i\n",errno);
+            syslog(LOG_ERR, "couldn't read from the server");
+            return -1;
+        }
+        else if(readStatus == 0)
+        {
+            syslog(LOG_ERR, "read returned a 0");
             return -1;
         }
         else
