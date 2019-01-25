@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define SERVER "irc.twitch.tv"
+#define SERVER "irc.chat.twitch.tv"
 #define PORT "6667"
 #define BOTNICK "hoarebot"
 
