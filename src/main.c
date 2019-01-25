@@ -117,16 +117,20 @@ int main(int argc, char *argv[])
     if(initialize(botPass, &botMsg) != 0)
     {
         printf("failed to initialize the bot\n");
+        syslog(LOG_ERR, "failed to intialize the bot");
         return -1;
     }
     if(run(&botMsg) != 0)
     {
         printf("bot run error\n");
-        return -1;
+        syslog(LOG_ERR, "bot run error");
+        syslog(LOG_ERR, "attempting to clean up...");
     }
     if(cleanup(&botMsg) != 0)
     {
         printf("failed to clean up bot\nyou need to manually clean up\n");
+        syslog(LOG_ERR, "failed to clean up bot");
+        syslog(LOG_ERR, "you need to manually clean up");
         return -1;
     }
     return 0;
