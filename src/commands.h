@@ -16,21 +16,21 @@
 
 typedef struct Channel
 {
-    pid_t PID;
-    char name[128];
-    struct Channel *next;
+	pid_t PID;
+	char name[128];
+	struct Channel *next;
 }chnlL_t;
 
 typedef struct Command
 {
-    char arg[128];
-    struct Command *next;
+	char arg[128];
+	struct Command *next;
 }cmd_t;
 
 typedef struct RaffleEntrys
 {
-    char username[128];
-    struct RaffleEntrys *next;
+	char username[128];
+	struct RaffleEntrys *next;
 }re_t;
 
 typedef struct ModList
@@ -41,9 +41,9 @@ typedef struct ModList
 
 typedef struct CommandInfo
 {
-    struct sendMsg *botMsg;
-    char username[128];
-    cmd_t *parsedCmd;
+	struct sendMsg *botMsg;
+	char username[128];
+	cmd_t *parsedCmd;
 }cmdInfo_t;
 
 void getMods(struct sendMsg *botMsg);

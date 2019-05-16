@@ -18,14 +18,14 @@
 
 struct getMsg
 {
-    char username[128];
-    char text[BUFSIZ];
+	char username[128];
+	char text[BUFSIZ];
 };
 struct sendMsg
 {
-    int irc;
-    char channel[128];
-    char text[4096];
+	int irc;
+	char channel[128];
+	char text[4096];
 };
 
 int twitchChatConnect();

@@ -13,14 +13,14 @@
 
 typedef struct List
 {
-    char type[32];
-    struct ListItem *head;
+	char type[32];
+	struct ListItem *head;
 }list_t;
 
 typedef struct ListItem
 {
-    char item[BUFSIZ];
-    struct ListItem *next;
+	char item[BUFSIZ];
+	struct ListItem *next;
 }listItem_t;
 
 void populateLists();
