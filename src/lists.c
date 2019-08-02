@@ -93,10 +93,10 @@ void addItem(char *listItem, int listType)
 	listItem_t *CL;
 	CL = lists[listType]->head;
 	numEntry[listType]++;
-	while(CL) CL = CL->next;
-	CL = malloc(sizeof(list_t));
-	strcpy(CL->item,listItem);
-	CL->next = NULL;
+	while(CL->next) CL = CL->next;
+	CL->next = malloc(sizeof(list_t));
+	strcpy(CL->next->item,listItem);
+	CL->next->next = NULL;
 }
 
 int removeItem(char *listItem, int listType)
