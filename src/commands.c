@@ -323,8 +323,8 @@ void raffle(cmdInfo_t *commandInfo)
 		}
 		else
 		{
-			re_t *current = raffleNames;
-			do 
+			re_t *current, *last;
+			for(current = raffleNames;current != NULL;last = current, current = current->next)
 			{
 				if(!strcmp(current->username,commandInfo->username))//check if the user has already entered
 				{
@@ -332,11 +332,10 @@ void raffle(cmdInfo_t *commandInfo)
 					chat(commandInfo->botMsg);
 					return;
 				}
-				current = current->next;
-			} while(current->next != NULL);
-			current->next = malloc(sizeof(re_t));
-			current->next->next = NULL;
-			strcpy(current->next->username,commandInfo->username);
+			}
+			last->next = malloc(sizeof(re_t));
+			last->next->next = NULL;
+			strcpy(last->next->username,commandInfo->username);
 		}
 		sprintf(commandInfo->botMsg->text,"%s has entered the draw.",commandInfo->username);
 		chat(commandInfo->botMsg);
