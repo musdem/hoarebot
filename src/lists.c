@@ -43,6 +43,12 @@ void populateLists()
 	else
 	{
 		mkdir(LIST_DIR,0755);
+		chdir(LIST_DIR);
+		fclose(fopen("healthy","w"));
+		fclose(fopen("modspls","w"));
+		fclose(fopen("pasta","w"));
+		fclose(fopen("quote","w"));
+		chdir("..");
 		populateLists();
 	}
 }
