@@ -6,7 +6,7 @@ int numEntry[NUM_LISTS] = {0,0,0,0};
 
 void populateLists()
 {
-	int curList = 0;
+	int curList;
 	char line[BUFSIZ];
 	struct dirent *currentItem;
 	listItem_t *current;
@@ -20,6 +20,21 @@ void populateLists()
 		{
 			if(strcmp("..",currentItem->d_name) != 0 && strcmp(".",currentItem->d_name) != 0)//make sure that dir up and cur dir aren't considered a list
 			{
+				switch(currentItem->d_name[0])
+				{
+					case 'h':
+						curList = HEALTHY;
+						break;
+					case 'm':
+						curList = MODSPLS;
+						break;
+					case 'p':
+						curList = PASTA;
+						break;
+					case 'q':
+						curList = QUOTE;
+						break;
+				}
 				listFile = fopen(currentItem->d_name,"r");
 				lists[curList] = malloc(sizeof(list_t));
 				strcpy(lists[curList]->type,currentItem->d_name);
