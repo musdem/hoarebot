@@ -226,7 +226,7 @@ int run(struct sendMsg *botMsg)
 				if(chatMsg.text[0] == '!')
 				{
 					command(&chatMsg, botMsg);
-					syslog(LOG_INFO, "ran command from user: %s using message %s", chatMsg.username, chatMsg.text);
+					syslog(LOG_INFO, "%s ran command %s", chatMsg.username, chatMsg.text);
 				}
 			}
 		}
